@@ -1,0 +1,649 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Voice Changer</title>
+    <style>
+      body {
+        font-family: Arial,Helvetica,sans-serif;
+        background: #383838; 
+        color: #EFEFEF;
+        font-size: 20px
+      }
+
+      center{
+       text-align: center; 
+      }
+      
+      #content {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch
+      }
+      
+      section#footer {
+        min-width: 332px;
+        background-color: #363636;
+        margin-top: 0px;
+        padding: 4px 12px;
+        display: flex;
+        flex-wrap: wrap;
+        border-radius: 4px;
+        justify-content: space-between;
+        font-size: 11px;
+      }
+      
+      table {
+        table-layout: fixed;
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width:100%
+      }
+        
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      input[type="text"] {
+        font-size: 20px; 
+        width: 100px
+      }
+      input[type="submit"], input[type="file"] {
+        padding: 10px; 
+        background-color: deepskyblue;
+        font-size: 20px; 
+      }
+      
+      input[type="checkbox"] {
+        width : 20px;
+        height : 20px;
+      }
+      
+      input[type="radio"] {
+        width : 20px;
+        height : 20px;
+      }
+
+      .input-group {
+        position: relative;
+        display: flex;
+        flex-wrap: nowrap;
+        margin: 5px 0
+      }
+      .info-group {
+        position: relative;                               
+        margin: 5px 0;
+          
+      }
+      .input-group>label {
+        display: inline-block;
+        padding-right: 10px;
+        min-width: 47%
+      }
+
+      .input-group input,.input-group select {
+        flex-grow: 1
+      }
+
+      .range-max,.range-min {
+        display: inline-block;
+        padding: 0 5px
+      }
+
+      button {
+        display: inline-block;
+        margin: 5px;
+        padding: 0 6px;
+        border: 0;
+        line-height: 28px;
+        cursor: pointer;
+        color: #fff;
+        background: #ff3034;
+        border-radius: 5px;
+        font-size: 16px;
+        width: 100px;
+        outline: 0
+      }
+
+      button:hover {
+        background: #ff494d
+      }
+
+      button.disabled {
+        cursor: default;
+        background: #a0a0a0
+      }
+
+      input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 22px;
+        background: #363636;
+        cursor: pointer;
+        margin: 0
+      }
+
+      input[type=range]:focus {
+        outline: 0
+      }
+
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: #EFEFEF;
+        border-radius: 0;
+        border: 0 solid #EFEFEF
+      }
+
+      input[type=range]::-webkit-slider-thumb {
+        border: 1px solid rgba(0,0,30,0);
+        height: 22px;
+        width: 22px;
+        border-radius: 50px;
+        background: deepskyblue;
+        cursor: pointer;
+        -webkit-appearance: none;
+        margin-top: -11.5px
+      }
+
+      input[type=range]:focus::-webkit-slider-runnable-track {
+        background: #EFEFEF
+      }
+
+      input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: #EFEFEF;
+        border-radius: 0;
+        border: 0 solid #EFEFEF
+      }
+
+      input[type=range]::-moz-range-thumb {
+        border: 1px solid rgba(0,0,30,0);
+        height: 22px;
+        width: 22px;
+        border-radius: 50px;
+        background: #ff3034;
+        cursor: pointer
+      }
+
+      input[type=range]::-ms-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: 0 0;
+        border-color: transparent;
+        color: transparent
+      }
+
+      input[type=range]::-ms-fill-lower {
+        background: #EFEFEF;
+        border: 0 solid #EFEFEF;
+        border-radius: 0
+      }
+
+      input[type=range]::-ms-fill-upper {
+        background: #EFEFEF;
+        border: 0 solid #EFEFEF;
+        border-radius: 0
+      }
+
+      input[type=range]::-ms-thumb {
+        border: 1px solid rgba(0,0,30,0);
+        height: 22px;
+        width: 22px;
+        border-radius: 50px;
+        background: #ff3034;
+        cursor: pointer;
+        height: 2px
+      }
+
+      input[type=range]:focus::-ms-fill-lower {
+        background: #EFEFEF
+      }
+
+      input[type=range]:focus::-ms-fill-upper {
+        background: #363636
+      }
+
+      .switch {
+        display: block;
+        position: relative;
+        line-height: 26px;
+        font-size: 16px;
+        height: 30px
+      }
+
+      .switch input {
+        outline: 0;
+        opacity: 0;
+        width: 0;
+        height: 0
+      }
+
+      .slider {
+        width: 50px;
+        height: 24px;
+        border-radius: 22px;
+        cursor: pointer;
+        background-color: grey
+      }
+
+      .slider,.slider:before {
+        display: inline-block;
+        transition: .4s
+      }
+
+      .slider:before {
+        position: relative;
+        content: "";
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        top: 2px;
+        background-color: #fff
+      }
+
+      input:checked+.slider {
+        background-color: deepskyblue
+      }
+
+      input:checked+.slider:before {
+        -webkit-transform: translateX(26px);
+        transform: translateX(26px)
+      }
+
+      .hidden {
+        display: none
+      }
+      
+      .table-group {
+        width:100%
+      }
+            
+      .innertable td {
+        border:0;
+      }
+      
+      .innertable select {
+        font-size: 18px;
+        color: blue;
+      }
+      
+      .button-group {
+        background-color: darkgrey;
+      }
+      
+      output {
+        position: absolute;
+        top: -32px;
+        display: none;
+        width: 50px;
+        height: 24px;
+        border: 1px solid #e2e2e2;
+        background-color: #FFE4C4;
+        border-radius: 3px;
+        color: #777;
+        font-size: .8em;
+        font-weight: bold;
+        line-height: 24px;
+        text-align: center;
+      }
+
+      input[type=range]:active + output {
+        display: block;
+        -webkit-transform: translateX(180px);
+      }
+      button:active{background-color:green}
+    </style>
+    <script src="/web?jquery.min.js"></script>
+  </head>
+  <body>
+   <div class="table-group">
+     <table id="button-group">
+      <tr>
+        <td>
+         <button id="save" class="update-action" value="1">Update</button>
+       </td><td>
+         <button id="record" class="update-action" value="2">Record</button>
+       </td><td>
+         <button id="play" class="update-action" value="3">Play</button>
+       </td><td>
+         <button id="stop" class="control-action" value="6">Stop</button>
+       </td><td>
+         <button id="download" class="download-action" value="5">Output</button>
+       </td><td>
+         <button id="passthru" class="update-action" value="4">PassThru</button>
+       </td>
+      </tr>
+    </table>
+    <table>
+      <td>
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="BP">Band Pass
+          </td><td>
+            <label for="BPcasSel">Cascade:</label>
+            <select id="BPcasSel">
+              <option name="BPcas" value="1" selected>1</option> 
+              <option name="BPcas" value="2">2</option> 
+              <option name="BPcas" value="3">3</option>
+              <option name="BPcas" value="4">4</option> 
+            </select>
+        </td></table>
+      </td><td>
+        <div class="input-group">
+          <label for="BPfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter band pass central frequency" type="range" id="BPfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td>
+        <div class="input-group">
+          <label for="BPqval">Q factor: </label>
+          <div class="range-min">0.1</div>
+          <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <output name="rangeVal">0.7</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+      <tr><td>      
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="HP">High Pass
+          </td><td>
+            <label for="HPcasSel">Cascade:</label>
+            <select id="HPcasSel">
+              <option name="HPcas" value="1" selected>1</option> 
+              <option name="HPcas" value="2">2</option> 
+              <option name="HPcas" value="3">3</option>
+              <option name="HPcas" value="4">4</option> 
+            </select>
+        </td></table>
+      </td><td>
+        <div class="input-group">
+          <label for="HPfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter high pass frequency" type="range" id="HPfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td>
+        <div class="input-group">
+          <label for="HPqval">Q factor: </label>
+          <div class="range-min">0.1</div>
+          <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <output name="rangeVal">0.7</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+      <tr><td>   
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="LP">Low Pass  
+          </td><td>
+            <label for="LPcasSel">Cascade:</label>
+            <select id="LPcasSel">
+              <option name="LPcas" value="1" selected>1</option> 
+              <option name="LPcas" value="2">2</option> 
+              <option name="LPcas" value="3">3</option>
+              <option name="LPcas" value="4">4</option> 
+            </select>
+        </td></table>
+      </td><td>    
+        <div class="input-group">
+          <label for="LPfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter low pass frequency" type="range" id="LPfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td>  
+         <div class="input-group">
+          <label for="LPqval">Q factor: </label>
+          <div class="range-min">0.1</div>
+          <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <output name="rangeVal">0.7</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+      <tr><td>    
+         <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="HS">High Shelf
+         </td><td></td></table> 
+      </td><td> 
+        <div class="input-group">
+          <label for="HSfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter high shelf frequency" type="range" id="HSfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td>  
+         <div class="input-group">
+          <label for="HSgain">Gain dB:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter gain" type="range" id="HSgain" min="0" max="20" value="0">
+          <output name="rangeVal">0</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+      <tr><td>    
+         <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="LS">Low Shelf
+         </td><td></td></table> 
+      </td><td>   
+        <div class="input-group">
+          <label for="LSfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter low shelf frequency" type="range" id="LSfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td>  
+        <div class="input-group">
+          <label for="LSgain">Gain dB:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter gain" type="range" id="LSgain" min="0" max="20" value="0">
+          <output name="rangeVal">0</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+      <tr><td>       
+         <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="PK">Peak
+         </td><td></td></table> 
+      </td><td>   
+        <div class="input-group">
+          <label for="PKfreq">Frequency:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter peak frequency" type="range" id="PKfreq" min="0" max="8000" value="4000" step="10">
+          <output name="rangeVal">4000</output>
+          <div class="range-max">8000</div>
+        </div>
+      </td><td rowspan=2>     
+        <div class="input-group">
+          <label for="PKgain">Gain dB:</label>
+          <div class="range-min">0</div>
+          <input title="Set filter gain" type="range" id="PKgain" min="0" max="20" value="0">
+          <output name="rangeVal">0</output>
+          <div class="range-max">20</div>
+        </div><br/>
+        <div class="input-group">
+          <label for="PKqval">Q factor: </label>
+          <div class="range-min">0.1</div>
+          <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="20" step="0.1" value="0.7">
+          <output name="rangeVal">0.7</output>
+          <div class="range-max">20</div>
+        </div>
+      </td></tr>
+
+       <tr><td>
+         <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="DT">Distort
+         </td><td></td></table> 
+      </td><td>           
+        <div class="input-group">
+          <label for="SatFac">Saturation:</label>
+          <div class="range-min">1</div>
+          <input title="Set saturation level for distortion" type="range" id="SatFac" min="1" max="10" value="1" class="update-action">
+          <output name="rangeVal">1</output>
+          <div class="range-max">10</div>
+        </div>
+       </td></tr>
+        <tr><td>       
+        <table class="innertable"><td colspan="2">
+          <input type="checkbox" name="filter" id="CP">Compress Volume
+          </td></table>
+       </td><td>       
+        <div class="input-group">
+          <label for="PrsFac">Compression:</label>
+          <div class="range-min">1</div>
+          <input title="Set compression level for high volume" type="range" id="PrsFac" min="1" max="10" value="1" class="control-action">
+          <output name="rangeVal">1</output>
+          <div class="range-max">10</div>
+        </div>
+       </td><td></td></tr>
+       <tr><td>       
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="RM">Ring Mod
+          </td><td></td></table>
+      </td><td>       
+       <div class="input-group"> 
+          <label for="SineFreq">Frequency:</label> 
+          <div class="range-min">0</div>
+          <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
+          <output name="rangeVal">80</output>
+          <div class="range-max">400</div>
+        </div> 
+       </td><td></td></tr>
+       <tr><td>  
+        <fieldset>      
+        <legend>I2S Peripheral Channel</legend> 
+        <!-- if MicChan:"1" then mic is I2S_NUM_1, else mic is I2S_NUM_0 (opposite for amp) -->
+        <div class="input-group">
+          <div class="switch">
+            <font size="4px">0</font><input id="micI2S" type="radio" name="MicChan" value="1" Checked>
+            <label title="Select which channel to use" class="slider" for="micI2S"></label>
+           </div>
+           <label for="micI2S">&nbsp;&nbsp;1&nbsp;&nbsp;Microphone</label>
+         </div></br>
+         <div class="input-group">
+          <div class="switch">
+            <font size="4px">0</font>
+            <input id="ampI2S" type="radio" name="MicChan" value="0">
+            <label title="Select which channel to use" class="slider" for="ampI2S"></label>
+          </div>
+          <label for="ampI2S">&nbsp;&nbsp;1&nbsp;&nbsp;Amplifier</label>
+         </div>
+        </fieldset>
+       </td><td>       
+        <fieldset>      
+         <legend>Device Type</legend> 
+          Microphone: <input type="radio" name="mType" value="0" checked>I2S 
+          <input type="radio" name="mType" value="1">PDM
+          <input type="radio" name="mType" value="2">ADC
+         </br></br>
+          Amplifier:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="aType" value="0" checked>I2S 
+          <input type="radio" name="aType" value="1">PDM
+          <input type="radio" name="aType" value="2">DAC
+         </fieldset>
+       </td><td>
+          <div class="input-group">
+          <label for="PreAmp">PreAmp Gain:</label>
+          <div class="range-min">0</div>
+          <input title="Set preamplifier gain factor" type="range" id="PreAmp" min="0" max="7" value="5">
+          <output name="rangeVal">5</output>
+          <div class="range-max">7</div>
+          </div>
+          </br>
+          <div class="input-group">
+          <label for="Bright">Brightness:</label>
+          <div class="range-min">0</div>
+          <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="5">
+          <output name="rangeVal">1</output>
+          <div class="range-max">7</div>
+          </div>
+       </td></tr>
+       <tr><td> 
+        <div class="input-group">
+          <label for="Disable">Disable: </label>
+          <div class="switch">
+            <input id="Disable" type="checkbox">
+            <label title="Disable current filter selection" class="slider" for="Disable"></label>
+          </div>
+        </div> 
+        <div class="input-group">
+          <label for="VolPot">Analog Control: </label>
+          <div class="switch">
+            <input id="VolPot" type="checkbox">
+            <label title="Whether an external potentiometer used for volume / brightness" class="slider" for="VolPot"></label>
+          </div>
+        </div> 
+       </td><td colspan="2">
+        <fieldset>           
+        <legend>Sample Rate</legend>   
+          <input type="radio" name="Srate" value="8000">8000    
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <input type="radio" name="Srate" value="11025">11025    
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          
+          <input type="radio" name="Srate" value="16000" Checked>16000
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <input type="radio" name="Srate" value="22050">22050
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <input type="radio" name="Srate" value="44100">44100
+        </fieldset>
+       </td>
+      </tr>
+    </table>
+    </div>
+      <section id="footer">
+        <div class="info-group center" id="atemp-group">
+            <label for="atemp">Device&nbsp;Temp</label>
+            <div id="atemp" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div> 
+        <div class="info-group center" id="batt-group">
+            <label for="battv">Battery&nbsp;Voltage</label>
+            <div id="battv" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div> 
+        <div class="info-group center" id="clock-group">
+            <label for="clock">&nbsp;Device&nbsp;local&nbsp;time</label>
+            <div id="clock" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>
+        <div class="info-group center" id="uptime-group">
+            <label for="up_time">Up&nbsp;time</label>
+            <div id="up_time" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>                                                 
+        <div class="info-group center" id="rssi-group">
+            <label for="wifi_rssi">Signal&nbsp;Strength</label>
+            <div id="wifi_rssi" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>
+        <div class="info-group center" id="heap-group">
+            <label for="free_heap">Free&nbsp;heap</label>
+            <div id="free_heap" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>  
+        <div class="info-group center" id="heap-group">
+            <label for="free_psram">Free&nbsp;PSRAM</label>
+            <div id="free_psram" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>                 
+        <div class="info-group center" id="total-group">
+            <label for="total_bytes">Total&nbsp;space</label>
+            <div id="total_bytes" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>                
+        <div class="info-group center" id="used-group">
+            <label for="used_bytes">Used&nbsp;space</label>
+            <div id="used_bytes" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>
+        <div class="info-group center" id="free-group">
+            <label for="free_bytes">Free&nbsp;space</label>
+            <div id="free_bytes" class="default-action info displayonly" name="textonly">&nbsp;</div>
+        </div>   
+    </section>          
+    <script src="/web?common.js"></script>
+    <script src="/web?logSlider.js"></script>
+  </body>
+</html>
