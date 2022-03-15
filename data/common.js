@@ -90,8 +90,7 @@
         // send out update request supplying value of pressed button
         if (this.classList.contains('update-action')) sendUpdates(this.value);
         if (this.classList.contains('control-action')) controlRequest(this);
-        if (this.classList.contains('download-action')) window.location.href='/control?download=1';  
-        if (this.classList.contains('output-action')) window.location.href='/control?output=1'; 
+        if (this.classList.contains('download-action')) window.location.href='/control?download='+this.value;  
       });
 
       document.addEventListener('DOMContentLoaded', function (event) {
