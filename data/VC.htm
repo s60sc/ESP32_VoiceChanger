@@ -481,44 +481,30 @@
           <div class="range-max">20</div>
         </div>
       </td></tr>
-
-       <tr><td>
-         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="DT">Distort
-         </td><td></td></table> 
-      </td><td>           
-        <div class="input-group">
-          <label for="SatFac">Saturation:</label>
-          <div class="range-min">1</div>
-          <input title="Set saturation level for distortion" type="range" id="SatFac" min="1" max="10" value="1" class="update-action">
-          <output name="rangeVal">1</output>
-          <div class="range-max">10</div>
-        </div>
-       </td></tr>
-        <tr><td>       
+      <tr><td>       
         <table class="innertable"><td colspan="2">
-          <input type="checkbox" name="filter" id="CP">Compress Volume
-          </td></table>
-       </td><td>       
-        <div class="input-group">
-          <label for="PrsFac">Compression:</label>
-          <div class="range-min">1</div>
-          <input title="Set compression level for high volume" type="range" id="PrsFac" min="1" max="10" value="1" class="control-action">
-          <output name="rangeVal">1</output>
-          <div class="range-max">10</div>
-        </div>
-       </td><td></td></tr>
-       <tr><td>       
-        <table class="innertable"><td>
           <input type="checkbox" name="filter" id="RM">Ring Mod
           </td><td></td></table>
-      </td><td>       
-       <div class="input-group"> 
+       </td><td>       
+        <div class="input-group">
           <label for="SineFreq">Frequency:</label> 
           <div class="range-min">0</div>
           <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
           <output name="rangeVal">80</output>
           <div class="range-max">400</div>
+        </div>
+       </td></tr>
+       <tr><td>       
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="CP">Clipping
+          </td><td></td></table>
+      </td><td>       
+       <div class="input-group"> 
+          <label for="ClipFac">Hardness Factor:</label>
+          <div class="range-min">1</div>
+          <input title="Set clipping factor, higher is harder" type="range" id="ClipFac" min="1" max="10" value="1" class="control-action">
+          <output name="rangeVal">1</output>
+          <div class="range-max">10</div>
         </div> 
        </td><td></td></tr>
        <tr><td>  
@@ -527,11 +513,12 @@
         <!-- if MicChan:"1" then mic is I2S_NUM_1, else mic is I2S_NUM_0 (opposite for amp) -->
         <div class="input-group">
           <div class="switch">
-            <font size="4px">0</font><input id="micI2S" type="radio" name="MicChan" value="1" Checked>
+            <font size="4px">0</font>
+            <input id="micI2S" type="radio" name="MicChan" value="1" Checked>
             <label title="Select which channel to use" class="slider" for="micI2S"></label>
            </div>
            <label for="micI2S">&nbsp;&nbsp;1&nbsp;&nbsp;Microphone</label>
-         </div></br>
+         </div>
          <div class="input-group">
           <div class="switch">
             <font size="4px">0</font>
