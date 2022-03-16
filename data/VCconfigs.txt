@@ -22,10 +22,10 @@ BPcas:1
 HPcas:1
 LPcas:1
 PKqval:7
-DT:0
-SatFac:0
 CP:0
-PrsFac:0
+ClipFac:1
+RV:0
+DecayFac:1
 RM:0
 SineFreq:80
 PreAmp:7
