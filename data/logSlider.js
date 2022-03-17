@@ -18,17 +18,17 @@
           return minpos + (Math.log(value) - minval) / scale;
         } 
       };
-      
+/*
       var logQ = new LogSlider(0.1, 20);
 
       $('#Qval').on('change', function () {
         var val = logQ.value(+$(this).val());
         $('#QvalT').val(val.toFixed(1)); 
       });
-            
-      var logSn = new LogSlider(1, 2000);
+*/           
+      var logSn = new LogSlider(1, 400);
 
       $('#SineFreq').on('change', function () {
         var val = logSn.value(+$(this).val());
-        $('#SineFreq').val(val()); 
+        $('#SineFreq').val(val.toFixed(0)); 
       });
