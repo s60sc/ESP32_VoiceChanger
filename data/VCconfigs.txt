@@ -28,8 +28,9 @@ RV:0
 DecayFac:1
 RM:0
 SineFreq:80
-PreAmp:7
-Bright:0
+AmpVol:3
+PreAmp:3
+Bright:3
 Srate:16000
 MicChan:1
 mType:0

@@ -309,7 +309,7 @@
      <table id="button-group">
       <tr>
         <td>
-         <button id="save" class="update-action" value="1">Update</button>
+         <button id="save" class="update-action" value="1">Save</button>
        </td><td>
          <button id="record" class="update-action" value="2">Record</button>
        </td><td>
@@ -348,9 +348,9 @@
         <div class="input-group">
           <label for="BPqval">Q factor: </label>
           <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="10" step="0.1" value="0.7">
           <output name="rangeVal">0.7</output>
-          <div class="range-max">20</div>
+          <div class="range-max">10</div>
         </div>
       </td></tr>
       <tr><td>      
@@ -377,9 +377,9 @@
         <div class="input-group">
           <label for="HPqval">Q factor: </label>
           <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="10" step="0.1" value="0.7">
           <output name="rangeVal">0.7</output>
-          <div class="range-max">20</div>
+          <div class="range-max">10</div>
         </div>
       </td></tr>
       <tr><td>   
@@ -406,9 +406,9 @@
          <div class="input-group">
           <label for="LPqval">Q factor: </label>
           <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="20" step="0.1" value="0.7">
+          <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="10" step="0.1" value="0.7">
           <output name="rangeVal">0.7</output>
-          <div class="range-max">20</div>
+          <div class="range-max">10</div>
         </div>
       </td></tr>
       <tr><td>    
@@ -476,9 +476,9 @@
         <div class="input-group">
           <label for="PKqval">Q factor: </label>
           <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="20" step="0.1" value="0.7">
+          <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="10" step="0.1" value="0.7">
           <output name="rangeVal">0.7</output>
-          <div class="range-max">20</div>
+          <div class="range-max">10</div>
         </div>
       </td></tr>
       <tr><td>       
@@ -554,18 +554,26 @@
          </fieldset>
        </td><td>
           <div class="input-group">
-          <label for="PreAmp">PreAmp Gain:</label>
+          <label for="PreAmp">Preamp Gain:</label>
           <div class="range-min">0</div>
-          <input title="Set preamplifier gain factor" type="range" id="PreAmp" min="0" max="7" value="5">
-          <output name="rangeVal">5</output>
+          <input title="Set microphone preamp gain level" type="range" id="PreAmp" min="0" max="7" value="4">
+          <output name="rangeVal">4</output>
           <div class="range-max">7</div>
           </div>
-          </br>
+          <div style="line-height:50%;"></br></div>
+          <div class="input-group">
+          <label for="AmpVol">Volume:</label>
+          <div class="range-min">0</div>
+          <input title="Set ampifier volume level" type="range" id="AmpVol" min="0" max="7" value="4">
+          <output name="rangeVal">4</output>
+          <div class="range-max">7</div>
+          </div>
+          <div style="line-height:50%;"></br></div>
           <div class="input-group">
           <label for="Bright">Brightness:</label>
           <div class="range-min">0</div>
-          <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="5">
-          <output name="rangeVal">1</output>
+          <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="4">
+          <output name="rangeVal">4</output>
           <div class="range-max">7</div>
           </div>
        </td></tr>
@@ -602,6 +610,5 @@
     </table>
     </div>
     <script src="/web?common.js"></script>
-    <script src="/web?logSlider.js"></script>
   </body>
 </html>
