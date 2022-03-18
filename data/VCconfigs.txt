@@ -1,11 +1,11 @@
 ST_SSID:null
 hostName:VoiceChanger
 BPfreq:4000
-BPqval:7
+BPqval:0.7
 HPfreq:4000
-HPqval:7
+HPqval:0.7
 LPfreq:4000
-LPqval:7
+LPqval:0.7
 HSfreq:4000
 HSgain:3
 LSfreq:4000
@@ -21,7 +21,7 @@ PK:0
 BPcas:1
 HPcas:1
 LPcas:1
-PKqval:7
+PKqval:0.7
 CP:0
 ClipFac:1
 RV:0
