@@ -39,9 +39,9 @@ For realtime voice changing, the microphone must be acoustically shielded from t
 
 Voice changing is achieved by applying software filters:
 * Bandpass: emphasise a prticular range of frequencies
-* Lowpass: attentuate higher frequencies 
-* Highpass: attentuate lower frequencies
-* Peak: amplify a particular frequencies
+* Highcut (lowpass): attentuate higher frequencies 
+* Lowcut (highpass): attentuate lower frequencies
+* Peak: amplify particular frequencies
 * Lowshelf: amplify lower frequencies
 * Highshelf: amplify higher frequencies
 * Ring modulator: use sinewave to create a dalek style voice 
@@ -68,14 +68,14 @@ Other settings:
 * Disable: if on, disables current filter settings without changing them
 
 Example configuration for radio style voice:  
-* High Pass: Frequency 1500, Cascade 2
-* Low Pass: Frequency 2000, Q Factor 0.7
+* Low Cut: Frequency 1500, Cascade 2
+* High Cut: Frequency 2000, Q Factor 0.7
 * Low Shelf: Frequency 2500, Gain dB 6 
 * Peak: Frequency 400, Q Factor 0.7, Gain dB 3  
 
 Example configuration for dalek style voice:  
-* High Pass: Frequency 500, Q Factor 0.7
-* Low Pass: Frequency 2000, Q Factor 0.7
+* Low Cut: Frequency 100, Q Factor 0.7
+* High Cut: Frequency 2000, Q Factor 0.7
 * Ring Mod: Frequency 50
 
 Browser functions only tested on Chrome.

@@ -43,7 +43,8 @@ static esp_err_t updateAppStatus(const char* variable, const char* value) {
   else if (!strcmp(variable, "BPcas")) BP_CAS = intVal;   
   else if (!strcmp(variable, "HPcas")) HP_CAS = intVal;  
   else if (!strcmp(variable, "LPcas")) LP_CAS = intVal;                
-  else if (!strcmp(variable, "SineFreq")) SW_FREQ = intVal;      
+  else if (!strcmp(variable, "SineFreq")) SW_FREQ = intVal;  
+  else if (!strcmp(variable, "SineAmp")) SW_AMP = intVal << 5;     
   else if (!strcmp(variable, "ClipFac")) CLIP_FACTOR = intVal;  
   else if (!strcmp(variable, "DecayFac")) DECAY_FACTOR = intVal;        
   else if (!strcmp(variable, "PreAmp")) PREAMP_GAIN = intVal;  
@@ -253,8 +254,10 @@ bool updateStatus(const char* variable, const char* value) {
   else if(!strcmp(variable, "resetLog")) reset_log(); 
   else if(!strcmp(variable, "reset")) return false;
   else if(!strcmp(variable, "clear")) savePrefs(true);
-  else if(!strcmp(variable, "delspiffs")) {
-    startSpiffs(true); // /control?delspiffs=1
+  else if(!strcmp(variable, "deldata")) {  
+    // /control?deldata=1
+    if ((fs::SPIFFSFS*)&STORAGE == &SPIFFS) startSpiffs(true);
+    else deleteFolderOrFile(DATA_DIR);
     return false;
   }
   else if(!strcmp(variable, "save")) {

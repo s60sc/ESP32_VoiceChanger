@@ -42,6 +42,7 @@ float PK_GAIN; // amplify gain around frequency
 float PK_FREQ; // center frequency for peak
 float PK_Q;    // sharpness of filter
 int SW_FREQ;    // frequency of generated sine wave
+uint8_t SW_AMP;    // amplitude of generated sine wave
 int CLIP_FACTOR; // factor used to clip higher amplitudes
 int DECAY_FACTOR; // factor used control reverb decay
 
@@ -59,9 +60,8 @@ static int factorial(int top) {
   return fact;
 }
 
-static void generateSineWave(uint16_t frequency) {
+static void generateSineWave(uint16_t frequency, uint8_t amplitude) {
   // pre generate sine wave table at given frequency
-  const int amplitude = 128; // +/- amplitude of sinewave
   dataPoints = SAMPLE_RATE / frequency; // number of data points for given freq
   sineWaveTable = (int8_t*)malloc(dataPoints);
   for (int i = 0; i < dataPoints; i++) {
@@ -101,7 +101,7 @@ static inline void initBiquad(int ftype, float freq, float Qval, float gain, int
 void setupFilters() {
   calcQvals();
   filtIdx = 0;
-  if (RING_MOD) generateSineWave(SW_FREQ);
+  if (RING_MOD) generateSineWave(SW_FREQ, SW_AMP);
   if (BAND_PASS) initBiquad(bq_type_bandpass, BP_FREQ, BP_Q, 0, BP_CAS);
   if (HIGH_PASS) initBiquad(bq_type_highpass, HP_FREQ, HP_Q, 0, HP_CAS);
   if (LOW_PASS) initBiquad(bq_type_lowpass, LP_FREQ, LP_Q, 0, LP_CAS);
@@ -122,11 +122,11 @@ void applyFilters(int8_t volume) {
     if (RING_MOD) {
       // output dalek style voice, by multiplying input value with sine wave value
       for (int i = 0; i < DMA_BUFF_LEN; i++) { 
-        int32_t thisSample = ((int32_t)SAMPLE_BUFFER[i] << 8) * sineWaveTable[i % dataPoints];
-        SAMPLE_BUFFER[i] = (int16_t)(thisSample >> 14); 
+        int32_t thisSample = (int32_t)SAMPLE_BUFFER[i] * sineWaveTable[i % dataPoints];
+        SAMPLE_BUFFER[i] = (int16_t)(thisSample / SW_AMP); 
       }
-    } 
-
+    }
+    
     // add reverb
     if (REVERB) {
       static int16_t reverbBuff[REVERB_SAMPLES] = {0};

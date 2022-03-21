@@ -1,11 +1,11 @@
 
 // Assist setup for new app installations
-// provided by gemi254
+// original provided by gemi254
 
 #include "myConfig.h"
-#include <HTTPClient.h>
+#include <HTTPClient.h> 
 
-// DigiCert SHA2 valid till 22/10/2028
+// DigiCert valid till 22/10/2028
 static const char* git_rootCACertificate = R"~(
 -----BEGIN CERTIFICATE-----
 MIIEsTCCA5mgAwIBAgIQBOHnpNxc8vNtwCtCuF0VnzANBgkqhkiG9w0BAQsFADBs
@@ -39,52 +39,48 @@ cPUeybQ=
 
 static fs::FS fp = STORAGE;
 
-static void wgetFile(const char* filePath) {
+static void wgetFile(const char* filePath, bool restart = false) {
   if (!fp.exists(filePath)) {
     if (WiFi.status() != WL_CONNECTED) return;  
     char downloadURL[150];
     sprintf(downloadURL, "%s%s", GITHUB_URL, filePath);
-    File f = fp.open(filePath, FILE_WRITE);
-    if (f) {
-      HTTPClient https;
-      WiFiClientSecure wclient;
-      wclient.setInsecure(); // not SSL
-//      wclient.setCACert(git_rootCACertificate);
-      https.begin(wclient, downloadURL);
-      LOG_INF("Downloading %s from %s", filePath, downloadURL);    
-      int httpCode = https.GET();
-      if (httpCode == HTTP_CODE_OK) {
-        https.writeToStream(&f);
+    for (int i = 0; i < 2; i++) {
+      // try secure then insecure
+      File f = fp.open(filePath, FILE_WRITE);
+      if (f) {
+        HTTPClient https;
+        WiFiClientSecure wclient;
+        if (!i) wclient.setCACert(git_rootCACertificate);
+        else wclient.setInsecure(); // not SSL      
+        https.begin(wclient, downloadURL);
+        LOG_INF("Downloading %s from %s", filePath, downloadURL);    
+        int httpCode = https.GET();
+        int fileSize = 0;
+        if (httpCode == HTTP_CODE_OK) {
+          fileSize = https.writeToStream(&f);
+          if (fileSize <= 0) {
+            httpCode = 0;
+            LOG_ERR("Download failed: writeToStream");
+          } else LOG_INF("Downloaded %s, size %d bytes", filePath, fileSize);       
+        } else LOG_ERR("Download failed, error: %s", https.errorToString(httpCode).c_str());    
+        https.end();
         f.close();
-        LOG_INF("Downloaded %s", filePath);        
-      } else {
-        f.close();
-        fp.remove(filePath);
-        LOG_ERR("Download failed, error: %s", https.errorToString(httpCode).c_str());        
-      }    
-      https.end();
-    } else LOG_ERR("Open failed: %s", filePath);
-  }
+        if (httpCode == HTTP_CODE_OK) break;
+        else fp.remove(filePath);
+      } else LOG_ERR("Open failed: %s", filePath);
+    } 
+    if (restart) doRestart();
+  } 
 }
 
 bool checkDataFiles() {
-  // Check and download missing data files
+  // Download missing data files
   if (!fp.exists(DATA_DIR)) fp.mkdir(DATA_DIR);
-  // No config map.. Download it
-//  updateStatus("clear", "1"); // clear prefs
-  File f = fp.open(CONFIG_FILE_PATH, FILE_READ);
-  bool bConfigOK = f && f.size() > 0;
-  f.close();
-  if (!bConfigOK && WiFi.status() == WL_CONNECTED) {
-    LOG_ERR("Invalid config file");
-    fp.remove(CONFIG_FILE_PATH);
-    wgetFile(CONFIG_FILE_PATH);
-    doRestart();
-  }
+  wgetFile(CONFIG_FILE_PATH, true);
   wgetFile(INDEX_PAGE_PATH);      
-  wgetFile(DATA_DIR "/OTA.htm");
-  wgetFile(DATA_DIR "/jquery.min.js");
   wgetFile(DATA_DIR "/common.js");
+  wgetFile(DATA_DIR "/jquery.min.js");
+  wgetFile(DATA_DIR "/OTA.htm");
   return true;
 }
 

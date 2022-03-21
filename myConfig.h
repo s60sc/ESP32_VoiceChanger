@@ -62,7 +62,7 @@
 /********************* fixed defines leave as is *******************/ 
  
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.0"
+#define APP_VER "1.1"
 
 #define DATA_DIR "/data"
 #define HTML_EXT ".htm"
@@ -235,6 +235,7 @@ extern float PK_GAIN; // amplify gain around frequency
 extern float PK_FREQ; // center frequency for peak
 extern float PK_Q;    // sharpness of filter
 extern int SW_FREQ;    // frequency of generated sine wave
+extern uint8_t SW_AMP;    // amplitude of generated sine wave
 extern int CLIP_FACTOR; // factor used to compress high volume
 extern int DECAY_FACTOR; // factor used control reverb decay
 
