@@ -28,6 +28,7 @@ RV:0
 DecayFac:1
 RM:0
 SineFreq:80
+SineAmp:5
 AmpVol:3
 PreAmp:3
 Bright:3

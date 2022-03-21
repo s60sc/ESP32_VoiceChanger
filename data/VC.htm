@@ -355,7 +355,7 @@
       </td></tr>
       <tr><td>      
         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="HP">High Pass
+          <input type="checkbox" name="filter" id="HP">Low Cut
           </td><td>
             <label for="HPcasSel">Cascade:</label>
             <select id="HPcasSel">
@@ -384,7 +384,7 @@
       </td></tr>
       <tr><td>   
         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="LP">Low Pass  
+          <input type="checkbox" name="filter" id="LP">High Cut  
           </td><td>
             <label for="LPcasSel">Cascade:</label>
             <select id="LPcasSel">
@@ -481,21 +481,9 @@
           <div class="range-max">10</div>
         </div>
       </td></tr>
-      <tr><td>       
-        <table class="innertable"><td colspan="2">
-          <input type="checkbox" name="filter" id="RM">Ring Mod
-          </td><td></td></table>
-       </td><td>       
-        <div class="input-group">
-          <label for="SineFreq">Frequency:</label> 
-          <div class="range-min">0</div>
-          <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
-          <output name="rangeVal">80</output>
-          <div class="range-max">400</div>
-        </div>
-       </td></tr>
+
        <tr><td>       
-        <table class="innertable"><td>
+        <table class="innertable"><td colspan="2">
           <input type="checkbox" name="filter" id="CP">Clipping
           </td><td></td></table>
       </td><td>       
@@ -506,7 +494,7 @@
           <output name="rangeVal">1</output>
           <div class="range-max">10</div>
         </div> 
-       </td><td></td></tr>
+       </td></tr>
        <tr><td>       
         <table class="innertable"><td>
           <input type="checkbox" name="filter" id="RV">Reverb
@@ -520,6 +508,27 @@
           <div class="range-max">10</div>
         </div> 
        </td><td></td></tr>
+       <tr><td>       
+        <table class="innertable"><td>
+          <input type="checkbox" name="filter" id="RM">Ring Mod
+          </td><td></td></table>
+       </td><td>       
+        <div class="input-group">
+          <label for="SineFreq">Frequency:</label> 
+          <div class="range-min">0</div>
+          <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
+          <output name="rangeVal">80</output>
+          <div class="range-max">400</div>
+        </div>
+       </td><td>
+        <div class="input-group">
+          <label for="SineAmp">Amplitude:</label> 
+          <div class="range-min">1</div>
+          <input title="Set sine wave amplitude" type="range" id="SineAmp" min="1" max="7" value="3">
+          <output name="rangeVal">3</output>
+          <div class="range-max">7</div>
+        </div>
+       </td></tr>
        <tr><td>  
         <fieldset>      
         <legend>I2S Peripheral Channel</legend> 
