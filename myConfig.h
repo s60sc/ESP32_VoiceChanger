@@ -76,7 +76,7 @@
 #define ONEMEG (1024 * 1024)
 #define MAX_PWD_LEN 64
 #define JSON_BUFF_LEN (2 * 1024) // set big enough to hold json string
-#define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/master"
+#define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/main"
 
 #define FILE_EXT "wav"
 #define DMA_BUFF_LEN 1024 // used for I2S buffer size
