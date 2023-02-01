@@ -1,129 +1,255 @@
 
 <!doctype html>
+<!-- 
+  s60sc 2022 
+--> 
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Voice Changer</title>
+    <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">🎤</text></svg>'>
+    
     <style>
-      body {
-        font-family: Arial,Helvetica,sans-serif;
-        background: #383838; 
-        color: #EFEFEF;
-        font-size: 20px
-      }
-
-      center{
-       text-align: center; 
-      }
-      
-      #content {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: stretch
-      }
-      
-      section#footer {
-        min-width: 332px;
-        background-color: #363636;
-        margin-top: 0px;
-        padding: 4px 12px;
-        display: flex;
-        flex-wrap: wrap;
-        border-radius: 4px;
-        justify-content: space-between;
-        font-size: 11px;
-      }
-      
-      table {
-        table-layout: fixed;
-        font-family: arial, sans-serif;
-        border-collapse: collapse;
-        width:100%
-      }
+      :root {
+        /* colors used on web pages - see https://www.w3schools.com/colors/colors_names.asp */
+        --buttonReady: crimson;
+        --buttonActive: ForestGreen;
+        --buttonHover: green;
+        --buttonText: white;
+        --buttonLabel: black;
+        --itemInactive: gray;
+        --menuBackground: #404040; /* dark gray */
+        --inputText: navy;
+        --pageText: WhiteSmoke; 
+        --inputBackground: WhiteSmoke; 
+        --alertMsg: orange;             
+        --itemBorder: silver; 
+        --pageBackground:#181818; /* nearly black */
         
-      td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
+        /* element sizes */
+        --bodySize:1rem; /* used as basis for element, padding, and font sizes */
+        --buttonSize: var(--bodySize);
+        --buttonHalf: calc(var(--buttonSize) / 2);
+        --buttonQuart: calc(var(--buttonSize) / 4);
+        --buttonDbl: calc(var(--buttonSize) * 2);
+        --inputSize: calc(var(--bodySize) * 0.9);
+        --headingSize: calc(var(--bodySize) * 1.25);
+        --subheadingSize: var(--bodySize);
+        --footerSize: calc(var(--bodySize) * 0.7);
+      }
+      
+      body {
+        font-family: Helvetica  !important;
+        background: var(--pageBackground);
+        color: var(--pageText);
+        font-size: var(--bodySize);  
+      }
+      
+      .hidden {
+        display: none
+      }
+      
+      progress {
+        accent-color: var(--buttonActive);
+        width: calc(var(--buttonSize) * 15);
+      }
+      
+      .alertMsg {
+        left:10%;
+        bottom: var(--buttonDbl);
+        position:absolute;
+        display:block;
+        color:var(--alertMsg);
+        z-index:20;
+        height: var(--buttonDbl);
       }
 
-      input[type="text"] {
-        font-size: 20px; 
-        width: 100px
-      }
-      input[type="submit"], input[type="file"] {
-        padding: 10px; 
-        background-color: deepskyblue;
-        font-size: 20px; 
+      .header {
+        font-size: var(--headingSize);
+        padding-left: var(--buttonHalf);
+        font-weight:bold;     
       }
       
-      input[type="checkbox"] {
-        width : 20px;
-        height : 20px;
+      .subheader {
+        font-style: italic;
+        font-size: var(--subheadingSize);
+        padding-left: var(--buttonQuart);
       }
       
-      input[type="radio"] {
-        width : 20px;
-        height : 20px;
+      .tab {
+        display: flex;
+        overflow: hidden;
+        background: var(--menuBackground);
+      }
+
+      .tab button {
+        background: var(--buttonReady);
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: var(--buttonHalf);
+        transition: 0.3s;
+        font-size: calc(var(--buttonSize) * 1.1);
+      }
+      
+      .tab button.active {
+        box-shadow: 0 0 0 var(--buttonQuart) var(--buttonActive);
+        background: var(--buttonActive);
+      }
+
+      .tab button.hover {
+        background: var(--buttonHover);
+      }
+      
+      .tab button.disabled {
+        cursor: default;
+        background: var(--itemInactive)
+      }
+      
+      .tabcontent {
+        display: none;
+      }
+
+     .grid-cols3 {
+        grid-template-columns: calc(var(--buttonSize) * 10) calc(var(--buttonSize) * 10) calc(var(--buttonSize) * 10);
+        display: grid;
+        background: none;
+        text-align: center;
+        font-size: var(--inputSize);
+        fill: var(--buttonLabel);
+        border: 0px solid var(--itemBorder);
+        dominant-baseline: middle;
+        text-anchor: middle;
+      }
+      
+      .cfgTitle {
+        grid-column: 1/5;
+        text-align: left;
+      }
+      
+      svg {
+        width: calc(var(--buttonSize) * 8);
+        height: var(--buttonDbl);
+      }
+      
+      rect {
+        fill: var(--buttonReady);
+        width: 100%;
+        height: 100%; 
+        x: 0;
+        y: 0;
+        ry: 15%;
+      }
+      
+      rect:active {
+        fill: var(--buttonActive);
+      }
+      
+      rect:hover {
+        fill: var(--buttonHover);
+      }
+    
+      text {
+        font-size: var(--buttonSize); 
+        fill: var(--buttonText);
+        transform: translate(50%,50%); 
+        pointer-events: none; 
+      }
+      
+      .navtop{
+        list-style: none;
+        border: 1px solid var(--itemBorder);
+        border-radius: var(--buttonQuart);
+        padding: var(--buttonQuart);
+        margin-top: var(--buttonHalf);  
+      }
+      
+      button {
+        display: block;
+        margin: var(--buttonQuart);
+        padding: var(--buttonQuart);
+        border: 0;
+        line-height: var(--headingSize);
+        cursor: pointer;
+        color: var(--buttonText);
+        background: var(--buttonReady);
+        border-radius: var(--buttonQuart);
+        font-size: var(--buttonSize);
+        outline: 0
+      }
+
+      button:active{
+       box-shadow: 0 0 0 var(--buttonQuart) var(--buttonActive);
+        background: var(--buttonActive);
+      }
+      
+      button:hover {
+        background: var(--buttonHover);
+      }
+
+      button:disabled {
+        cursor: default;
+        background: var(--itemInactive)
       }
 
       .input-group {
         position: relative;
         display: flex;
         flex-wrap: nowrap;
-        margin: 5px 0
+        line-height: var(--buttonDbl);
+        margin-top: var(--buttonHalf);
       }
-      .info-group {
-        position: relative;                               
-        margin: 5px 0;
-          
-      }
+      
       .input-group>label {
         display: inline-block;
-        padding-right: 10px;
-        min-width: 47%
+        padding-right: var(--buttonHalf);
+        min-width: calc(var(--buttonSize)*7);
+      }
+      
+      .input-group>input {
+          width: 100%;
       }
 
       .input-group input,.input-group select {
         flex-grow: 1
       }
 
-      .range-max,.range-min {
-        display: inline-block;
-        padding: 0 5px
+      input, #applog {
+        font: var(--inputSize) 'Courier New';
+        font-weight:bold;
+        color: var(--inputText);
+        background: var(--inputBackground);
+        min-width: calc(var(--buttonSize) * 10);
       }
-
-      button {
-        display: inline-block;
-        margin: 5px;
-        padding: 0 6px;
-        border: 0;
-        line-height: 28px;
-        cursor: pointer;
-        color: #fff;
-        background: #ff3034;
-        border-radius: 5px;
-        font-size: 16px;
-        width: 100px;
-        outline: 0
+      
+      input[type="text"] {
+        font-size: var(--inputSize); 
       }
-
-      button:hover {
-        background: #ff494d
+      
+      input[type="checkbox"] {
+        width : calc(var(--inputSize) * 1.5);
+        height : calc(var(--inputSize) * 1.5);
+        accent-color: var(--buttonActive);
+        margin-top: calc(var(--buttonQuart) * -1);
       }
-
-      button.disabled {
-        cursor: default;
-        background: #a0a0a0
+      
+      input[type="radio"] {
+        accent-color: var(--buttonActive);
+        width: var(--inputSize);
+        height: var(--inputSize);
+        min-width: var(--buttonSize);
       }
 
       input[type=range] {
         -webkit-appearance: none;
+        font-size: var(--buttonSize);
         width: 100%;
-        height: 22px;
-        background: #363636;
+        height: var(--buttonHalf);
+        background: var(--menuBackground);
         cursor: pointer;
-        margin: 0
+        margin-top: calc(var(--buttonSize) * 3/4);
       }
 
       input[type=range]:focus {
@@ -134,490 +260,1163 @@
         width: 100%;
         height: 2px;
         cursor: pointer;
-        background: #EFEFEF;
-        border-radius: 0;
-        border: 0 solid #EFEFEF
+        background: var(--inputBackground);
+        border-radius: var(--buttonHalf);
       }
 
       input[type=range]::-webkit-slider-thumb {
-        border: 1px solid rgba(0,0,30,0);
-        height: 22px;
-        width: 22px;
-        border-radius: 50px;
-        background: deepskyblue;
+        height: var(--buttonSize);
+        width: var(--buttonSize);
+        border-radius: 50%;
+        background: var(--buttonReady); 
         cursor: pointer;
         -webkit-appearance: none;
-        margin-top: -11.5px
+        margin-top: calc(-1 * var(--buttonHalf));
       }
-
       input[type=range]:focus::-webkit-slider-runnable-track {
-        background: #EFEFEF
+        background: var(--inputBackground);
       }
-
-      input[type=range]::-moz-range-track {
-        width: 100%;
-        height: 2px;
-        cursor: pointer;
-        background: #EFEFEF;
-        border-radius: 0;
-        border: 0 solid #EFEFEF
+      
+      .range-value{
+        position: absolute;
+        top: -50%;
       }
-
-      input[type=range]::-moz-range-thumb {
-        border: 1px solid rgba(0,0,30,0);
-        height: 22px;
-        width: 22px;
-        border-radius: 50px;
-        background: #ff3034;
-        cursor: pointer
-      }
-
-      input[type=range]::-ms-track {
-        width: 100%;
-        height: 2px;
-        cursor: pointer;
-        background: 0 0;
-        border-color: transparent;
-        color: transparent
-      }
-
-      input[type=range]::-ms-fill-lower {
-        background: #EFEFEF;
-        border: 0 solid #EFEFEF;
-        border-radius: 0
-      }
-
-      input[type=range]::-ms-fill-upper {
-        background: #EFEFEF;
-        border: 0 solid #EFEFEF;
-        border-radius: 0
-      }
-
-      input[type=range]::-ms-thumb {
-        border: 1px solid rgba(0,0,30,0);
-        height: 22px;
-        width: 22px;
-        border-radius: 50px;
-        background: #ff3034;
-        cursor: pointer;
-        height: 2px
-      }
-
-      input[type=range]:focus::-ms-fill-lower {
-        background: #EFEFEF
-      }
-
-      input[type=range]:focus::-ms-fill-upper {
-        background: #363636
-      }
-
-      .switch {
+      
+      .range-value span{
+        width: var(--buttonDbl);
+        height: var(--buttonSize);
+        line-height: var(--buttonSize);
+        text-align: center;
+        background: var(--buttonReady); 
+        color: var(--buttonText); 
+        font-size: var(--footerSize);
         display: block;
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, 0);
+        border-radius: var(--buttonQuart);
+        top: var(--buttonHalf); 
+      }
+
+      .range-max,.range-min {
+        display: inline-block;
+        padding: 0 var(--buttonQuart);
+      }
+
+
+      /* checkbox toggle switch slider */
+            
+      .switch {
         position: relative;
-        line-height: 26px;
-        font-size: 16px;
-        height: 30px
+        display: inline-block;
+        width: calc(var(--buttonSize) * 2);
+        height: var(--buttonSize);
+        top: var(--buttonHalf);
       }
 
       .switch input {
-        outline: 0;
         opacity: 0;
         width: 0;
-        height: 0
+        height: 0;
       }
 
       .slider {
-        width: 50px;
-        height: 24px;
-        border-radius: 22px;
+        position: absolute;
+        border-radius: var(--buttonSize);
         cursor: pointer;
-        background-color: grey
-      }
-
-      .slider,.slider:before {
-        display: inline-block;
-        transition: .4s
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--itemInactive);
+        width: calc(var(--buttonSize) * 3);
+        transition: .4s;
       }
 
       .slider:before {
-        position: relative;
-        content: "";
+        position: absolute;
         border-radius: 50%;
-        height: 20px;
-        width: 20px;
-        left: 4px;
-        top: 2px;
-        background-color: #fff
+        content: "";
+        height: var(--buttonSize);
+        width: var(--buttonSize);
+        left: var(--buttonQuart);
+        background: var(--inputBackground);
+        transition: .4s;
       }
 
-      input:checked+.slider {
-        background-color: deepskyblue
+      input:checked + .slider {
+        background-color: var(--buttonActive);
       }
 
-      input:checked+.slider:before {
-        -webkit-transform: translateX(26px);
-        transform: translateX(26px)
-      }
-
-      .hidden {
-        display: none
+      input:checked + .slider:before {
+        transform: translateX(calc(var(--buttonSize)*1.5));
       }
       
-      .table-group {
-        width:100%
+      #applog {
+        height:90%;
+        width:90%;
+        border:2px solid var(--itemBorder);
+        overflow:auto;
+        background: var(--inputBackground);
       }
-            
+    
+      select {
+        border: 1px solid var(--menuBackground);
+        font-size: var(--inputSize);
+        outline: 0;
+        border-radius: var(--buttonQuart);
+        margin-top: 2px;
+      }
+      
+      .selectField {
+        height: calc(var(--inputSize) * 1.5);
+      }  
+      
+      table {
+        border-collapse:collapse; 
+        table-layout:fixed;
+        background: var(--menuBackground);
+        text-align: left;
+      }
+      
+      th {
+        font-weight:bold; 
+      }
+      
+      .config-group th, .config-group td {
+        border: 0;
+        padding: var(--buttonHalf) var(--buttonHalf) 0 var(--buttonHalf); 
+        padding-left: var(--buttonSize);
+        line-height: var(--buttonDbl);
+        font-size: var(--buttonSize);
+      }
+
+      .table-group table {
+        width: 100%;
+      }
+        
+      .table-group th, .table-group td {
+        border: 1px solid var(--itemBorder);
+        padding: var(--buttonHalf) var(--buttonHalf) 0 var(--buttonHalf); 
+      }
+
       .innertable td {
         border:0;
       }
       
       .innertable select {
-        font-size: 18px;
-        color: blue;
-      }
-      
-      .button-group {
-        background-color: darkgrey;
-      }
-      
-      output {
-        position: absolute;
-        top: -32px;
-        display: none;
-        width: 50px;
-        height: 24px;
-        border: 1px solid #e2e2e2;
-        background-color: #FFE4C4;
-        border-radius: 3px;
-        color: #777;
-        font-size: .8em;
-        font-weight: bold;
-        line-height: 24px;
-        text-align: center;
+        font-size: var(--inputSize);
+        color: var(--inputText);
       }
 
-      input[type=range]:active + output {
-        display: block;
-        -webkit-transform: translateX(180px);
+      .upperText {
+        transform: translate(50%,30%);  
       }
-      button:active{background-color:green}
+      
+      .lowerText {
+        transform: translate(50%,70%);  
+      }
+      
+      .midText {
+        transform: translate(50%,50%); 
+      }
+      
     </style>
-    <script src="/web?jquery.min.js"></script>
   </head>
+  
   <body>
-   <div class="table-group">
-     <table id="button-group">
-      <tr>
-        <td>
-         <button id="save" class="update-action" value="1">Save</button>
-       </td><td>
-         <button id="record" class="update-action" value="2">Record</button>
-       </td><td>
-         <button id="play" class="update-action" value="3">Play</button>
-       </td><td>
-         <button id="stop" class="control-action" value="6">Stop</button>
-       </td><td>
-         <button id="output" class="download-action" value="5">Output</button>
-       </td><td>
-         <button id="passthru" class="update-action" value="4">PassThru</button>
-       </td>
-      </tr>
-    </table>
-    <table>
-      <td>
-        <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="BP">Band Pass
-          </td><td>
-            <label for="BPcasSel">Cascade:</label>
-            <select id="BPcasSel">
-              <option name="BPcas" value="1" selected>1</option> 
-              <option name="BPcas" value="2">2</option> 
-              <option name="BPcas" value="3">3</option>
-              <option name="BPcas" value="4">4</option> 
-            </select>
-        </td></table>
-      </td><td>
-        <div class="input-group">
-          <label for="BPfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter band pass central frequency" type="range" id="BPfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td>
-        <div class="input-group">
-          <label for="BPqval">Q factor: </label>
-          <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="10" step="0.1" value="0.7">
-          <output name="rangeVal">0.7</output>
-          <div class="range-max">10</div>
-        </div>
-      </td></tr>
-      <tr><td>      
-        <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="HP">Low Cut
-          </td><td>
-            <label for="HPcasSel">Cascade:</label>
-            <select id="HPcasSel">
-              <option name="HPcas" value="1" selected>1</option> 
-              <option name="HPcas" value="2">2</option> 
-              <option name="HPcas" value="3">3</option>
-              <option name="HPcas" value="4">4</option> 
-            </select>
-        </td></table>
-      </td><td>
-        <div class="input-group">
-          <label for="HPfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter high pass frequency" type="range" id="HPfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td>
-        <div class="input-group">
-          <label for="HPqval">Q factor: </label>
-          <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="10" step="0.1" value="0.7">
-          <output name="rangeVal">0.7</output>
-          <div class="range-max">10</div>
-        </div>
-      </td></tr>
-      <tr><td>   
-        <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="LP">High Cut  
-          </td><td>
-            <label for="LPcasSel">Cascade:</label>
-            <select id="LPcasSel">
-              <option name="LPcas" value="1" selected>1</option> 
-              <option name="LPcas" value="2">2</option> 
-              <option name="LPcas" value="3">3</option>
-              <option name="LPcas" value="4">4</option> 
-            </select>
-        </td></table>
-      </td><td>    
-        <div class="input-group">
-          <label for="LPfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter low pass frequency" type="range" id="LPfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td>  
-         <div class="input-group">
-          <label for="LPqval">Q factor: </label>
-          <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="10" step="0.1" value="0.7">
-          <output name="rangeVal">0.7</output>
-          <div class="range-max">10</div>
-        </div>
-      </td></tr>
-      <tr><td>    
-         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="HS">High Shelf
-         </td><td></td></table> 
-      </td><td> 
-        <div class="input-group">
-          <label for="HSfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter high shelf frequency" type="range" id="HSfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td>  
-         <div class="input-group">
-          <label for="HSgain">Gain dB:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter gain" type="range" id="HSgain" min="0" max="20" value="0">
-          <output name="rangeVal">0</output>
-          <div class="range-max">20</div>
-        </div>
-      </td></tr>
-      <tr><td>    
-         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="LS">Low Shelf
-         </td><td></td></table> 
-      </td><td>   
-        <div class="input-group">
-          <label for="LSfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter low shelf frequency" type="range" id="LSfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td>  
-        <div class="input-group">
-          <label for="LSgain">Gain dB:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter gain" type="range" id="LSgain" min="0" max="20" value="0">
-          <output name="rangeVal">0</output>
-          <div class="range-max">20</div>
-        </div>
-      </td></tr>
-      <tr><td>       
-         <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="PK">Peak
-         </td><td></td></table> 
-      </td><td>   
-        <div class="input-group">
-          <label for="PKfreq">Frequency:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter peak frequency" type="range" id="PKfreq" min="0" max="8000" value="4000" step="10">
-          <output name="rangeVal">4000</output>
-          <div class="range-max">8000</div>
-        </div>
-      </td><td rowspan=2>     
-        <div class="input-group">
-          <label for="PKgain">Gain dB:</label>
-          <div class="range-min">0</div>
-          <input title="Set filter gain" type="range" id="PKgain" min="0" max="20" value="0">
-          <output name="rangeVal">0</output>
-          <div class="range-max">20</div>
-        </div><br/>
-        <div class="input-group">
-          <label for="PKqval">Q factor: </label>
-          <div class="range-min">0.1</div>
-          <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="10" step="0.1" value="0.7">
-          <output name="rangeVal">0.7</output>
-          <div class="range-max">10</div>
-        </div>
-      </td></tr>
-
-       <tr><td>       
-        <table class="innertable"><td colspan="2">
-          <input type="checkbox" name="filter" id="CP">Clipping
-          </td><td></td></table>
-      </td><td>       
-       <div class="input-group"> 
-          <label for="ClipFac">Hardness Factor:</label>
-          <div class="range-min">1</div>
-          <input title="Set clipping factor, higher is harder" type="range" id="ClipFac" min="1" max="10" value="1" class="control-action">
-          <output name="rangeVal">1</output>
-          <div class="range-max">10</div>
-        </div> 
-       </td></tr>
-       <tr><td>       
-        <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="RV">Reverb
-          </td><td></td></table>
-      </td><td>       
-       <div class="input-group"> 
-          <label for="DecayFac">Decay Factor:</label>
-          <div class="range-min">1</div>
-          <input title="Reverb decay factor, higher is faster" type="range" id="DecayFac" min="1" max="10" value="1" class="control-action">
-          <output name="rangeVal">1</output>
-          <div class="range-max">10</div>
-        </div> 
-       </td><td></td></tr>
-       <tr><td>       
-        <table class="innertable"><td>
-          <input type="checkbox" name="filter" id="RM">Ring Mod
-          </td><td></td></table>
-       </td><td>       
-        <div class="input-group">
-          <label for="SineFreq">Frequency:</label> 
-          <div class="range-min">0</div>
-          <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
-          <output name="rangeVal">80</output>
-          <div class="range-max">400</div>
-        </div>
-       </td><td>
-        <div class="input-group">
-          <label for="SineAmp">Amplitude:</label> 
-          <div class="range-min">1</div>
-          <input title="Set sine wave amplitude" type="range" id="SineAmp" min="1" max="7" value="3">
-          <output name="rangeVal">3</output>
-          <div class="range-max">7</div>
-        </div>
-       </td></tr>
-       <tr><td>  
-        <fieldset>      
-        <legend>I2S Peripheral Channel</legend> 
-        <!-- if MicChan:"1" then mic is I2S_NUM_1, else mic is I2S_NUM_0 (opposite for amp) -->
-        <div class="input-group">
-          <div class="switch">
-            <font size="4px">0</font>
-            <input id="micI2S" type="radio" name="MicChan" value="1" Checked>
-            <label title="Select which channel to use" class="slider" for="micI2S"></label>
-           </div>
-           <label for="micI2S">&nbsp;&nbsp;1&nbsp;&nbsp;Microphone</label>
-         </div>
-         <div class="input-group">
-          <div class="switch">
-            <font size="4px">0</font>
-            <input id="ampI2S" type="radio" name="MicChan" value="0">
-            <label title="Select which channel to use" class="slider" for="ampI2S"></label>
-          </div>
-          <label for="ampI2S">&nbsp;&nbsp;1&nbsp;&nbsp;Amplifier</label>
-         </div>
-        </fieldset>
-       </td><td>       
-        <fieldset>      
-         <legend>Device Type</legend> 
-          Microphone: <input type="radio" name="mType" value="0" checked>I2S 
-          <input type="radio" name="mType" value="1">PDM
-          <input type="radio" name="mType" value="2">ADC
-         </br></br>
-          Amplifier:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="aType" value="0" checked>I2S 
-          <input type="radio" name="aType" value="1">PDM
-          <input type="radio" name="aType" value="2">DAC
-         </fieldset>
-       </td><td>
-          <div class="input-group">
-          <label for="PreAmp">Preamp Gain:</label>
-          <div class="range-min">0</div>
-          <input title="Set microphone preamp gain level" type="range" id="PreAmp" min="0" max="7" value="4">
-          <output name="rangeVal">4</output>
-          <div class="range-max">7</div>
-          </div>
-          <div style="line-height:50%;"></br></div>
-          <div class="input-group">
-          <label for="AmpVol">Volume:</label>
-          <div class="range-min">0</div>
-          <input title="Set ampifier volume level" type="range" id="AmpVol" min="0" max="7" value="4">
-          <output name="rangeVal">4</output>
-          <div class="range-max">7</div>
-          </div>
-          <div style="line-height:50%;"></br></div>
-          <div class="input-group">
-          <label for="Bright">Brightness:</label>
-          <div class="range-min">0</div>
-          <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="4">
-          <output name="rangeVal">4</output>
-          <div class="range-max">7</div>
-          </div>
-       </td></tr>
-       <tr><td> 
-        <div class="input-group">
-          <label for="Disable">Disable: </label>
-          <div class="switch">
-            <input id="Disable" type="checkbox">
-            <label title="Disable current filter selection" class="slider" for="Disable"></label>
-          </div>
-        </div> 
-        <div class="input-group">
-          <label for="VolPot">Analog Control: </label>
-          <div class="switch">
-            <input id="VolPot" type="checkbox">
-            <label title="Whether an external potentiometer used for volume / brightness" class="slider" for="VolPot"></label>
-          </div>
-        </div> 
-       </td><td colspan="2">
-        <fieldset>           
-        <legend>Sample Rate</legend>   
-          <input type="radio" name="Srate" value="8000">8000    
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <input type="radio" name="Srate" value="11025">11025    
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          
-          <input type="radio" name="Srate" value="16000" Checked>16000
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <input type="radio" name="Srate" value="22050">22050
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <input type="radio" name="Srate" value="44100">44100
-        </fieldset>
-       </td>
-      </tr>
-    </table>
+    <div class="tab">
+      <ul class="navtop">
+        <button class="tablinks active" name="VoiceChanger">VoiceChanger</button>
+        <button class="tablinks" name="ShowLog">Show Log</button>
+        <button class="tablinks" name="EditConfig">Edit Config</button>
+        <button class="tablinks" name="OTAUpload">OTA Upload</button>
+      </ul>
     </div>
-    <script src="/web?common.js"></script>
+    <div id="VoiceChanger" class="tabcontent" style="display:block">
+      <div class="table-group">
+       <table id="button-group">
+        <tr>
+          <td>
+           <button id="save" class="control-action" value="1">Save</button>
+         </td><td>
+           <button id="record" class="control-action" value="2">Record</button>
+         </td><td>
+           <button id="play" class="control-action" value="3">Play</button>
+         </td><td>
+           <button id="stop" class="control-action" value="6">Stop</button>
+         </td><td>
+           <button id="output" class="download-action" value="5">Output</button>
+         </td><td>
+           <button id="passthru" class="control-action" value="4">PassThru</button>
+         </td>
+        </tr>
+      </table>
+      <table>
+        <td>
+          <table class="innertable"><td>
+            <div class="input-group">
+              <label for="BP">Band Pass:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="BP">
+                <label title="" class="slider" for="BP"></label>
+              </div>
+            </div>
+            </td><td>
+              <label for="BPcas">Cascade:</label>
+              <select id="BPcas">
+                <option name="BPcas" value="1" selected>1</option> 
+                <option name="BPcas" value="2">2</option> 
+                <option name="BPcas" value="3">3</option>
+                <option name="BPcas" value="4">4</option> 
+              </select>
+          </td></table>
+        </td><td>
+          <div class="input-group">
+            <label for="BPfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter band pass central frequency" type="range" id="BPfreq" min="0" max="8000" value="4000" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td>
+          <div class="input-group">
+            <label for="BPqval">Q factor: </label>
+            <div class="range-min">0.1</div>
+            <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="10" step="0.1" value="0.7">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div>
+        </td></tr>
+        <tr><td>      
+          <table class="innertable"><td>
+            <div class="input-group">
+              <label for="HP">Low Cut:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="HP">
+                <label title="" class="slider" for="HP"></label>
+              </div>
+            </div>
+            </td><td>
+              <label for="HPcas">Cascade:</label>
+              <select id="HPcas">
+                <option name="HPcas" value="1" selected>1</option> 
+                <option name="HPcas" value="2">2</option> 
+                <option name="HPcas" value="3">3</option>
+                <option name="HPcas" value="4">4</option> 
+              </select>
+          </td></table>
+        </td><td>
+          <div class="input-group">
+            <label for="HPfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter high pass frequency" type="range" id="HPfreq" min="0" max="8000" value="4000" step="10">
+             <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td>
+          <div class="input-group">
+            <label for="HPqval">Q factor: </label>
+            <div class="range-min">0.1</div>
+            <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="10" step="0.1" value="0.7">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div>
+        </td></tr>
+        <tr><td>   
+          <table class="innertable"><td>
+             <div class="input-group">
+              <label for="LP">High Cut:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="LP">
+                <label title="" class="slider" for="LP"></label>
+              </div>
+            </div>
+            </td><td>
+              <label for="LPcas">Cascade:</label>
+              <select id="LPcas">
+                <option name="LPcas" value="1" selected>1</option> 
+                <option name="LPcas" value="2">2</option> 
+                <option name="LPcas" value="3">3</option>
+                <option name="LPcas" value="4">4</option> 
+              </select>
+          </td></table>
+        </td><td>    
+          <div class="input-group">
+            <label for="LPfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter low pass frequency" type="range" id="LPfreq" min="0" max="8000" value="4000" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td>  
+           <div class="input-group">
+            <label for="LPqval">Q factor: </label>
+            <div class="range-min">0.1</div>
+            <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="10" step="0.1" value="0.7">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div>
+        </td></tr>
+        <tr><td>    
+           <table class="innertable"><td>
+             <div class="input-group">
+              <label for="HS">High Shelf:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="HS">
+                <label title="" class="slider" for="HS"></label>
+              </div>
+            </div>
+           </td><td></td></table> 
+        </td><td> 
+          <div class="input-group">
+            <label for="HSfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter high shelf frequency" type="range" id="HSfreq" min="0" max="8000" value="4000" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td>  
+           <div class="input-group">
+            <label for="HSgain">Gain dB:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter gain" type="range" id="HSgain" min="0" max="20" value="0">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">20</div>
+          </div>
+        </td></tr>
+        <tr><td>    
+           <table class="innertable"><td>
+             <div class="input-group">
+              <label for="LS">Low Shelf:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="LS">
+                <label title="" class="slider" for="LS"></label>
+              </div>
+            </div>
+           </td><td></td></table> 
+        </td><td>   
+          <div class="input-group">
+            <label for="LSfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter low shelf frequency" type="range" id="LSfreq" min="0" max="8000" value="4000" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td>  
+          <div class="input-group">
+            <label for="LSgain">Gain dB:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter gain" type="range" id="LSgain" min="0" max="20" value="0">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">20</div>
+          </div>
+        </td></tr>
+        <tr><td>       
+          <table class="innertable"><td>
+            <div class="input-group">
+              <label for="PK">Peak:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="PK">
+                <label title="" class="slider" for="PK"></label>
+              </div>
+            </div>
+           </td><td></td></table> 
+        </td><td>   
+          <div class="input-group">
+            <label for="PKfreq">Frequency:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter peak frequency" type="range" id="PKfreq" min="0" max="8000" value="4000" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">8000</div>
+          </div>
+        </td><td rowspan=2>     
+          <div class="input-group">
+            <label for="PKgain">Gain dB:</label>
+            <div class="range-min">0</div>
+            <input title="Set filter gain" type="range" id="PKgain" min="0" max="20" value="0">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">20</div>
+          </div><br>
+          <div class="input-group">
+            <label for="PKqval">Q factor: </label>
+            <div class="range-min">0.1</div>
+            <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="10" step="0.1" value="0.7">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div>
+        </td></tr>
+         <tr><td>       
+          <table class="innertable"><td>
+            <div class="input-group">
+              <label for="CP">Clipping:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="CP">
+                <label title="" class="slider" for="CP"></label>
+              </div>
+            </div>
+          </td><td></td></table>
+        </td><td>       
+         <div class="input-group"> 
+            <label for="ClipFac">Hardness:</label>
+            <div class="range-min">1</div>
+            <input title="Set clipping factor, higher is harder" type="range" id="ClipFac" min="1" max="10" value="1">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div> 
+         </td></tr>
+         <tr><td>       
+          <table class="innertable"><td>
+             <div class="input-group">
+              <label for="RV">Reverb:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="RV">
+                <label title="" class="slider" for="RV"></label>
+              </div>
+            </div>
+          </td><td></td></table>
+        </td><td>       
+         <div class="input-group"> 
+            <label for="DecayFac">Decay Factor:</label>
+            <div class="range-min">1</div>
+            <input title="Reverb decay factor, higher is faster" type="range" id="DecayFac" min="1" max="10" value="1">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">10</div>
+          </div> 
+         </td><td></td></tr>
+         <tr><td>       
+          <table class="innertable"><td>
+            <div class="input-group">
+              <label for="RM">Ring Mod:</label>
+              <div class="switch">
+                <input type="checkbox" name="filter" id="RM">
+                <label title="" class="slider" for="RM"></label>
+              </div>
+            </div>
+          </td><td></td></table>
+         </td><td>       
+          <div class="input-group">
+            <label for="SineFreq">Frequency:</label> 
+            <div class="range-min">0</div>
+            <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">400</div>
+          </div>
+         </td><td>
+          <div class="input-group">
+            <label for="SineAmp">Amplitude:</label> 
+            <div class="range-min">1</div>
+            <input title="Set sine wave amplitude" type="range" id="SineAmp" min="1" max="7" value="3">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">7</div>
+          </div>
+         </td></tr>
+         <tr><td>  
+          <fieldset>      
+          <legend>I2S Peripheral Channel</legend> 
+          <!-- if MicChan:"1" then mic is I2S_NUM_1, else mic is I2S_NUM_0 (opposite for amp) -->
+          <div class="input-group">
+            <label for="micI2S">Microphone:</label>0&nbsp;
+            <div class="switch">
+              <input id="micI2S" type="checkbox" name="MicChan" value="1" Checked>
+              <label title="Select which channel to use" class="slider" for="micI2S"></label>
+             </div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1
+           </div>
+           <div class="input-group">
+            <label for="ampI2S">Amplifier:</label>0&nbsp;
+            <div class="switch">
+              <input id="ampI2S" type="checkbox" name="MicChan" value="0">
+              <label title="Select which channel to use" class="slider" for="ampI2S"></label>
+            </div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1
+           </div>
+          </fieldset>
+         </td><td>       
+          <fieldset>      
+           <legend>Device Type</legend> 
+             <div>
+              <span style="display: inline-block; width: calc(var(--buttonSize) * 7); margin-top:var(--buttonSize)">Microphone</span>
+              <input type="radio" name="mType" value="0" checked>I2S 
+              <input type="radio" name="mType" value="1">PDM
+              <input type="radio" name="mType" value="2">ADC
+            </div>
+            <br>
+            <div>
+              <span style="display: inline-block; width: calc(var(--buttonSize) * 7)">Amplifier:</span>
+              <input type="radio" name="aType" value="0" checked>I2S 
+              <input type="radio" name="aType" value="1">PDM
+              <input type="radio" name="aType" value="2">DAC
+             </div>
+           </fieldset>
+         </td><td>
+            <div class="input-group">
+            <label for="PreAmp">Preamp Gain:</label>
+            <div class="range-min">0</div>
+            <input title="Set microphone preamp gain level" type="range" id="PreAmp" min="0" max="7" value="4">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">7</div>
+            </div>
+            <div style="line-height:50%;"></div>
+            <div class="input-group">
+            <label for="AmpVol">Volume:</label>
+            <div class="range-min">0</div>
+            <input title="Set ampifier volume level" type="range" id="AmpVol" min="0" max="7" value="4">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">7</div>
+            </div>
+            <div style="line-height:50%;"></div>
+            <div class="input-group">
+            <label for="Bright">Brightness:</label>
+            <div class="range-min">0</div>
+            <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="4">
+            <div class="range-value" name="rangeVal"></div>
+            <div class="range-max">7</div>
+            </div>
+         </td></tr>
+         <tr><td> 
+          <div class="input-group">
+            <label for="Disable">Disable: </label>
+            <div class="switch">
+              <input id="Disable" type="checkbox">
+              <label title="Disable current filter selection" class="slider" for="Disable"></label>
+            </div>
+          </div> 
+          <div class="input-group">
+            <label for="VolPot">Analog Control: </label>
+            <div class="switch">
+              <input id="VolPot" type="checkbox">
+              <label title="Whether an external potentiometer used for volume / brightness" class="slider" for="VolPot"></label>
+            </div>
+          </div> 
+         </td><td colspan="2">
+          <fieldset>           
+          <legend>Sample Rate</legend>   
+            <input type="radio" name="Srate" value="8000">8000    
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="radio" name="Srate" value="11025">11025    
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          
+            <input type="radio" name="Srate" value="16000" Checked>16000
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="radio" name="Srate" value="22050">22050
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="radio" name="Srate" value="44100">44100
+          </fieldset>
+         </td>
+        </tr>
+      </table>
+      </div>
+     </div>
+     
+     <div id="ShowLog" class="tabcontent">
+      <br>
+      <div class="grid-cols3">
+        <div class="input-group" style="grid-column: 1/3">
+          <label for="wsMode" class="header" title="Enable logging to websocket">Log to browser:</label>
+          <div class="switch">
+            <input class="local" id="wsMode" type="checkbox">
+            <label title="Output log to WS" class="slider" for="wsMode"></label>
+          </div>   
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="clearWSlog" class="midText">Clear Log</text>
+          </svg>
+        </div>
+      </div>
+      <pre id='applog' style="height:50vh;"></pre>
+    </div>
+    <br>
+    
+    <div id="EditConfig" class="tabcontent">
+      <div class="header">Control</div>
+      <br>
+      <div class="grid-cols3">
+        <div>
+          <svg>
+            <rect/>
+            <text id="reset" class="midText">Save & Reboot</text>
+          </svg>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="deldata" class="midText">Reload /data</text>
+          </svg>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="clear" class="midText">Clear NVS</text>
+          </svg>
+        </div>
+        <div class="cfgTitle">
+          <br>
+          <div class="header">Settings</div>
+          <div class="subheader">Press a button to view or modify settings (changed values are not validated)</div>
+          <div class="subheader">Press Save & Reboot button to apply changes</div>
+          <br>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="wifi" class="midText">Wifi</text>
+          </svg>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="pinout" class="midText">Pins</text>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <p class='config-group'></p>
+      </div>
+    </div>
+           
+    <div id="OTAUpload" class="tabcontent">
+      <br><br>
+      <form id="upload_form" enctype="multipart/form-data" method="post">
+        <input class="local" type="file" name="otafile" id="otafile">
+        <br><br>
+        <progress id="progressOta" value="0" max="100" ></progress>%
+        <div class="subheader" id="status"></div>
+        <p id="loaded_n_total"></p>
+      </form>
+    </div>
+    
+    <div class="alertMsg">
+      <span id="alertText"></span>
+    </div>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function (event) {
+        'use strict'
+
+        /*********** initialisation ***********/
+        
+        const baseHost = document.location.origin;
+        const wsServer = "ws://" + document.location.host + ":80/ws";
+        let refreshInterval = 30000;         
+        let ws = null;
+        let hbTimer = null;
+        let updateData = {}; // receives json for status data as key val pairs
+        let statusData = {}; // stores all status data as key val pair   
+        let cfgGroupNow = -1;
+        let loggingOn = false;
+        const CLASS = 0;
+        const ID = 1;         
+        const $ = document.querySelector.bind(document);
+        const $$ = document.querySelectorAll.bind(document);
+        const baseFontSize = parseInt(window.getComputedStyle($('body')).fontSize); 
+       
+        initialise();
+        
+        function initialise() {
+          try {
+            //addButtons();
+            setListeners();
+            //initWebSocket();
+            loadStatus(""); 
+            //if (hbTimer == null) setTimeout(refreshStatus, refreshInterval);
+          } catch (error) {showLog("Error: " + error.message);}
+        }
+        
+        /*********** websocket functions ***********/
+        
+        // define websocket handling
+        function initWebSocket() {
+          loggingOn = true;
+          showLog("Connect to: " + wsServer);
+          ws = new WebSocket(wsServer);
+          ws.onopen = onOpen;
+          ws.onclose = onClose;
+          ws.onmessage = onMessage; 
+          ws.onerror = onError;
+        }
+        
+        // periodically check that connection is still up and get status
+        function heartbeat() {
+          if (!ws) return;
+          if (ws.readyState !== 1) return;
+          sendCmd("H");
+          clearTimeout(hbTimer);
+          hbTimer = setTimeout(heartbeat, refreshInterval);
+        }
+        
+        // connect to websocket server
+        function onOpen(event) {
+          showLog("Connected");
+          heartbeat();
+        }
+        
+        // process received WS message
+        function onMessage(messageEvent) {    
+          if (messageEvent.data.startsWith("{")) {
+            // json data
+            updateData = JSON.parse(messageEvent.data);
+            let filter = updateData.cfgGroup;
+            delete updateData.cfgGroup;
+            if (filter == "-1") updateStatus(); // status update
+            else buildTable(updateData, filter); // format received config json into html table
+          } else showLog(messageEvent.data, false);
+        }
+        
+        function onError(event) {
+          showLog("WS Error: " + event.code);
+        }
+        
+        function onClose(event) {
+          showLog("Disconnected: " + event.code + ' - ' + event.reason);
+          loggingOn = false;
+          ws = null;
+          // event.codes:
+          //   1006 if server not available, or another web page is already open
+          //   1005 if closed from app
+          if (event.code == 1006) {} // alert("Closed websocket as a newer connection was made, refresh browser page");
+          else if (event.code != 1005) initWebSocket(); // retry if any other reason
+        }
+        
+        async function closeWS() {
+          ws.send('K');
+          await sleep(500);
+          if (ws != null) ws.close();
+        }
+        
+        /*********** page layout functions ***********/
+      
+        function openTab(e) {
+          // control tab viewing
+          $$('.tabcontent').forEach(el => {el.style.display = "none";});
+          $('#' + e.name).style.display = "inherit";
+          $$('.tablinks').forEach(el => {el.classList.remove("active");});
+          e.classList.add("active");
+          try {
+            if (e.name == 'mainPage') show($('#main'));
+            else hide($('#main'));
+          } catch {}
+          $$('input[type=range]').forEach(el => {rangeMarker(el);});                         
+        }
+
+        function accordian(accId) {
+          // accordian buttons to show / hide elements
+          let panel = $('#' + accId);
+          if (panel.style.display === "inherit") panel.style.display = "none";
+          else panel.style.display = "inherit";
+        }
+        
+        function rangeMarker(range) {
+          const rangeVal = $('#'+range.id).parentElement.children.rangeVal;
+          const rangeFontSize = parseInt(window.getComputedStyle($('input[type=range]')).fontSize); 
+          let position = (range.clientWidth - rangeFontSize) * (range.value - range.min) / (range.max - range.min);
+          position += range.offsetLeft + (rangeFontSize / 2);
+          rangeVal.innerHTML = '<span>'+range.value+'</span>';
+          rangeVal.style.left = 'calc('+position+'px)';
+       }
+        
+        function addButtons() {
+          // add commmon buttons to relevant sections
+          $$('.addButtons').forEach(el => {
+            el.innerHTML = '<section id="buttons">'
+              +'<button id="save" style="float:right;" value="1">Save Settings</button>'
+              +'<button id="reset" style="float:right;" value="1">Reboot ESP</button>'
+            +'</section><br>'
+          });
+        }
+        
+        /*********** data processing functions ***********/
+        
+        async function loadStatus(specifier) {
+          // request and load current status from app
+          $$('input[type=range]').forEach(el => {rangeMarker(el);});
+          const response = await fetch(baseHost+'/status'+specifier);
+          if (response.ok) {
+            updateData = await response.json();
+            updateStatus();
+            await sleep(1000);
+          } else console.log(response.status);
+        }
+        
+        function refreshStatus() {
+          // refresh status at required interval
+          clearTimeout(hbTimer);
+          //loadStatus("?q");
+          hbTimer = setTimeout(refreshStatus, refreshInterval);
+        }
+        
+        function updateStatus() {
+          // replace each existing value with new received value, using key name to match html tag id
+          Object.entries(updateData).forEach(([key, value]) => {
+            let elt = $('text#'+key); // svg button
+            let eld = $('div#'+key); // display text
+            let eli = $('#'+key); // input field
+            if (elt) elt.textContent = value; 
+            else if (eld) {if (eld.classList.contains('displayonly')) eld.innerHTML = value;} // display text 
+            else if (eli != null) { // input fields
+              if (eli.type === 'checkbox') eli.checked = !!Number(value);
+              else if (eli.type === 'range') {
+                eli.value = value; 
+                rangeMarker(eli); 
+              }
+              else if (eli.type === 'option') eli.selected = true;
+              else eli.value = value; 
+            }
+            statusData[key] = value;
+            processStatus(ID, key, value, false);
+          });
+        }
+        
+        async function sendUpdates(doAction) {    
+          // send bulk updates to app as json 
+          statusData['action'] = doAction;
+          const response = await fetch(baseHost + '/update', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(statusData),
+          });
+          if (!response.ok) console.log(response.status);
+        }
+
+        /*********** utility functions ***********/
+        
+        function debounce(func, timeout = 500){
+          // debounce rapid clicks to prevent unnecessary fetches
+          let timer;
+          return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+          };
+        }
+        
+        const debounceSendControl = debounce((key, value) => sendControl(key, value));
+        
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+      
+        function hide(el) {
+          el.classList.add('hidden')
+          el.style.display = "none";
+        }
+        
+        function show(el) {
+          el.classList.remove('hidden')
+          el.style.display = "";
+        }
+
+        function disable(el) {
+          el.classList.add('disabled');
+          el.disabled = true;
+        }
+
+        function enable(el) {
+          el.classList.remove('disabled');
+          el.disabled = false;
+        }
+        
+        function isActive(key) {
+          return key.classList.contains('active') ? true : false;
+        }
+        
+        function isDefined(variable) {
+          return (typeof variable === 'undefined' || variable === null) ? false : true;
+        }
+        
+        async function showAlert(value) {
+          $('#alertText').innerHTML = value;
+          await sleep(5000);
+          $('#alertText').innerHTML = "";
+        }
+        
+        function dbg(msg) {
+          console.log('***** '+msg);
+        }
+
+        /*********** command processing ***********/
+      
+         function setListeners() {
+         
+          // click events
+         document.addEventListener("click", function (event) {
+            const e = event.target;
+            // svg rect elements, use id of its following text node
+            if (e.nodeName == 'rect') processStatus(ID, e.nextElementSibling.id, 1);
+            // tab buttons, use name as target id 
+            else if (e.classList.contains('tablinks')) openTab(e);
+            // other buttons
+            else if (e.tagName == 'BUTTON') processStatus(ID, e.id, e.value);
+            // navigation and presentation icons
+            else if (e.tagName == 'NAV' || e.tagName == 'DIV') processStatus(CLASS, e.classList.value, e.id);
+            else if (e.nodeName == 'INPUT' || e.nodeName == 'SELECT') {/*ignore*/}
+          });
+          
+          // change events
+          document.addEventListener("change", function (event) {
+            const e = event.target;
+            const value = e.value.trim();
+            const et = event.target.type;
+            // input fields of given class 
+            if (e.nodeName == 'INPUT') {  
+              if (e.type === 'checkbox') processStatus(ID, e.id, e.checked ? 1 : 0);
+              else if (et === 'button' || et === 'file') processStatus(ID, e.id, 1);
+              else if (et === 'radio') { if (e.checked) processStatus(ID, e.name, value); } 
+              else if (e.hasAttribute('id')) processStatus(ID, e.id, value);
+            }
+            else if (e.tagName == 'SELECT') processStatus(ID, e.id, value);
+          });
+
+          // input events
+          document.addEventListener("input", function (event) {
+            if (event.target.type === 'range') rangeMarker(event.target);
+          });
+          
+          // user command entered on Log tab
+          document.addEventListener("keydown", function (event) {
+            if (event.target.id == 'txtCmd') {
+              let keyPress = event.keyCode || event.which;
+              if (keyPress == 13) sendWsCmd();
+            }
+          });
+          
+          // recalc range marker positions 
+          window.addEventListener('resize', function (event) {
+            $$('input[type=range]').forEach(el => {rangeMarker(el);});
+          });
+          
+          // close web socket on leaving page
+          window.addEventListener('beforeunload', function (event) {
+            if (ws) closeWS();
+          });      
+          
+        }
+        
+        function sendWsCmd() {
+          // send user command to websocket server
+          let txt = $('#txtCmd');
+          let line = txt.value;
+          if (line != "" && ws !== undefined) {
+            sendCmd(line);
+            txt.value = "";
+            txt.focus();
+          } else showLog("No command or no connection");
+        }
+        
+        function sendCmd(reqStr) {
+          ws.send(reqStr);
+          showLog("Cmd: " + reqStr);
+        }
+        
+        function showLog(reqStr, fromUser = true) {
+          if (loggingOn) {
+            let date = new Date();
+            // add timestamp to received text if generated by browser
+            let logText = fromUser ? "[" + date.toLocaleTimeString() + " Web] " : "";
+            logText += reqStr + "\n";
+            // append to log display 
+            let log = $('#applog');
+            let new_node = document.createTextNode(logText);
+            log.append(new_node);
+            // auto scroll new entry unless scroll bar is not at bottom
+            const bottom = 2 * baseFontSize;// 2 lines
+            const pos = Math.abs(log.scrollHeight - log.clientHeight - log.scrollTop);
+            if (pos < bottom) log.scrollTop = log.scrollHeight;
+          }
+        }
+        
+        function sendWsUpdates(doAction) {    
+          // get each required update element and obtain id/name and value into array to send as json 
+          let jarray = {};
+          jarray["action"] = doAction;
+          $$('.update-action').forEach(el => {
+            if (el.nodeName == "INPUT") jarray[el.getAttribute('id')] = el.value.trim();
+          });
+          sendCmd('U' + JSON.stringify(jarray));
+        }
+
+        async function sendControl(key, value) {
+          // send only  
+          if (value != null) {
+            const response = await fetch(encodeURI(baseHost + "/control?" + key + "=" + value));
+            if (!response.ok) console.log(response.status);
+          }
+        }
+        
+        async function sendControlResp(key, value) {
+          // send and apply response
+          const response = await fetch(encodeURI(baseHost + "/control?" + key + "=" + value));
+          if (response.ok) {
+            updateData = await response.json();
+            updateStatus();
+          } else console.log(response.status); 
+        }
+        
+        /*********** config functions ***********/
+        
+        async function getConfig(cfgGroup) {
+          // request config json for selected group
+          const response = await fetch('/status?123456789' + cfgGroup);
+          if (response.ok) {
+            const configData = await response.json();
+            // format received json into html table
+            buildTable(configData, cfgGroup);
+          } else console.log(response.status); 
+        }
+        
+        function buildTable(configData, cfgGroup) {
+          // dynamically build table of editable settings
+          const divShowData = $('.config-group');
+          divShowData.innerHTML = "";
+          if (cfgGroupNow != cfgGroup) {
+            cfgGroupNow = cfgGroup;
+            const table = document.createElement("table");
+            // Create table header row from heading names
+            const colHeaders = ['Setting Name', 'Setting Value']; 
+            let tr = table.insertRow(-1); 
+            for (let i = 0; i < colHeaders.length; i++) {
+              let th = document.createElement("th");  
+              th.innerHTML = colHeaders[i];
+              tr.appendChild(th);
+            }
+
+            // add each setting as a row containing setting label and setting value
+            let nextPair = 3;
+            let saveKey, saveVal;
+            Object.entries(configData).forEach(([key, value]) => {
+              if (key != "cfgGroup") { // skip over this entry 
+                if (nextPair == 3) {
+                  // new row
+                  tr = table.insertRow(-1);
+                  nextPair = 0;
+                }
+                if (nextPair == 0) {
+                  // save key and value
+                  saveKey = key;
+                  saveVal = value;
+                  nextPair = 1;
+                } else if (nextPair == 1) {
+                  // insert label for setting
+                  tr.insertCell(-1).innerHTML = value; 
+                  nextPair = 2;
+                } else {
+                  // get input field type and build html
+                  let inputHtml;
+                  switch (value.charAt(0)) {
+                    case 'T':
+                      inputHtml = '<input type="text" class="configItem" id="' + saveKey + '" value="'+ saveVal +'" >';
+                    break;
+                    case 'N':
+                      inputHtml = '<input type="number" class="configItem" id="' + saveKey + '" value="'+ saveVal +'" >';
+                    break;
+                    case 'S': 
+                      // build drop down select
+                      inputHtml = '<select id="' + saveKey + '" class="selectField">';
+                      value.substring(2).split(":").forEach(opt => {
+                        inputHtml += '<option value="' + opt + '" ' + (saveVal == opt ? 'selected="selected"' : '') + '>' + opt + '</option>';
+                      });
+                      inputHtml += '</select>';
+                    break;
+                    case 'C':
+                      // format checkbox as slider
+                      inputHtml = '<div class="switch"><input type="checkbox" class="configItem" id="' + saveKey;
+                      inputHtml += '" value="'+ saveVal +'"' + (saveVal == 1 ? ' checked' : '') + '>';
+                      inputHtml += '<label class="slider" for="' + saveKey + '"></label></div>';
+                    break;
+                    case 'R': // read only
+                      inputHtml = '<input type="text" class="configItem" id="' + saveKey + '" value="'+ saveVal +'" readonly>';
+                    break;
+                    default:
+                      console.log("Unhandled config input type " + value);
+                    break;
+                  }
+                  tr.insertCell(-1).innerHTML = inputHtml;
+                  nextPair = 3;
+                }
+              }
+            })
+            // add the newly created table at placeholder
+            divShowData.appendChild(table);
+          } else cfgGroupNow = -1;
+        }
+
+        /*********** OTA functions ***********/
+         
+        async function otaUploadFile() {
+          // notify server to start ota task
+          const response = await fetch('/control?startOTA=1');
+          if (response.ok) {
+            // submit file for uploading
+            let file = $("#otafile").files[0];
+            let formdata = new FormData();
+            formdata.append("otafile", file);
+            let ajax = new XMLHttpRequest();
+            ajax.upload.addEventListener("progress", progressHandler, false);
+            ajax.addEventListener("load", completeHandler, false);
+            ajax.addEventListener("error", errorHandler, false);
+            ajax.addEventListener("abort", abortHandler, false);
+            ajax.open("POST", baseHost + ':82/upload');
+            ajax.send(formdata);
+          } else console.log(response.status); 
+        }
+
+        function progressHandler(event) {
+          $("#loaded_n_total").innerHTML = "Uploaded " + event.loaded + " of " + event.total + " bytes";
+          let percent = (event.loaded / event.total) * 100;
+          $("#progressOta").value = Math.round(percent);
+          $("#status").innerHTML = Math.round(percent) + "% transferred";
+          if (event.loaded  == event.total) $("#status").innerHTML = 'Uploaded, wait for completion result';
+        }
+
+        function completeHandler(event) {
+          $("#status").innerHTML = event.target.responseText;
+          $("#progressOta").value = 0;
+        }
+
+        function errorHandler(event) {
+          $("#status").innerHTML = "Upload Failed";
+          $("#progressOta").value = 0;
+        }
+
+        function abortHandler(event) {
+          $("#status").innerHTML = "Upload Aborted";
+          $("#progressOta").value = 0;
+        }
+
+        /************* App specific ***************/
+                                                             
+        function processStatus(dest, key, value, fromUser = true) {
+          // process change to status value
+          if (dest == ID) {
+            // operation based on ID
+            if (key == "wifi") getConfig("0");
+            else if (key == "hostName") document.title = value;
+            else if (key == "otafile") otaUploadFile();
+            else if (key == "alertMsg") showAlert(value);
+            else if (key == "clearWSlog") $('#applog').innerHTML = "";
+            else if (key == "wsMode") value == 1 ? initWebSocket() : closeWS();
+            else if (key == "pinout") getConfig("01");
+            else if (key == "reset") applyChanges();
+            else if (isDefined($('#'+key)) && $('#'+key).classList.contains("control-action")) sendControl('action', value);
+            else if (isDefined($('#'+key)) && $('#'+key).classList.contains("download-action")) window.location.href='/control?action=5'
+            else if (isDefined($('#'+key)) && $('#'+key).name == 'MicChan') changeI2Schan(key, value);
+            else if (fromUser) sendControl(key, value); // remaining changes are passed thru to app
+          }
+          else if (dest == CLASS) {}
+        }
+        
+        function changeI2Schan(key, value) {
+          // toggle mic / amp I2S channel used
+          sendControl('MicChan', key == 'micI2S' ? value : +!value);
+          if (key == 'micI2S') $('#ampI2S').checked = +!value;
+          else $('#micI2S').checked = +!value;
+        }
+        
+        async function applyChanges() {
+          sendControl('save', 1);
+          await sleep(1000);
+          sendControl('reset', 1);
+        }
+      
+      });         
+    </script>
   </body>
 </html>
