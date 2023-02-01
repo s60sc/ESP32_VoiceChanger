@@ -2,12 +2,14 @@
 
 ESP32 application to change a voice to be eg stormtrooper or dalek sounding, either in real time for cosplay or as a recording. Recordings can be downloaded to the browser as a WAV file
 for playback on a media player.
+Can be hosted on a ESP32 or ESP32-S3.
 
 ## Installation
 
 Download github files into the Arduino IDE sketch folder, removing `-master` from the application folder name.
-Configure the application using the `#define` statements in `myConfig.h`.
-Compile with Partition Scheme: `Minimal SPIFFS (...)`,  and with PSRAM enabled if present.
+Compile with PSRAM enabled if available, and the following Partition scheme:
+* ESP32 - `Minimal SPIFFS (...)`
+* ESP32S3 - `8M with spiffs (...)`
 
 On first use, a basic web page allows a wifi connection to be defined, which then downloads the contents of the **/data** folder from GitHub into the `SPIFFS` partition on the ESP32.
 
@@ -30,7 +32,9 @@ Other devices tested are:
 * MAX9814 ADC microphone
 * ICSK025A DAC 3W amplifier
 
-The application can be controlled by hardware buttons connected to pins defined in `myConfig.h`, and by software buttons on the web page.
+Analog devices are not supported by I2S on ESP32-S3.
+
+The application can be controlled by hardware buttons connected to pins defined via the app web page.
 
 For realtime voice changing, the microphone must be acoustically shielded from the speaker to prevent feedback squeal.
 
@@ -38,7 +42,7 @@ For realtime voice changing, the microphone must be acoustically shielded from t
 ## Usage
 
 Voice changing is achieved by applying software filters:
-* Bandpass: emphasise a prticular range of frequencies
+* Bandpass: emphasise a particular range of frequencies
 * Highcut (lowpass): attentuate higher frequencies 
 * Lowcut (highpass): attentuate lower frequencies
 * Peak: amplify particular frequencies
@@ -50,12 +54,14 @@ Voice changing is achieved by applying software filters:
 
 Biquad filters can also be cascaded to accentuate a particular effect. For more detail on biquad filters see eg. https://arachnoid.com/BiQuadDesigner/index.html
 
+## Web page controller
+
 Control buttons:
 * Save: save current configuration to storage
-* Record: save microphone input to PSRAM (up to 60 secs at 16kHz) without filtering, but with Preamp Gain applied
+* Record: save microphone input to PSRAM (up to 60 secs (ESP32) / 180 secs (ESP32S3) at 16kHz) without filtering, but with Preamp Gain applied
 * Play: play recording currently in PSRAM using current filter settings
 * Stop: stop current activity
-* Output: download current recording using current filtering to browser as file named `Audio.wav` 
+* Output: download current recording using current filtering to browser as file named `VoiceChanger.wav` 
 * PassThru: microphone input filtered and output to speaker directly
 
 As the recorded data is not filtered it can be replayed with different filter configurations to find the best filter combination and settings.
@@ -64,8 +70,8 @@ Other settings:
 * Preamp Gain: microphone gain
 * Volume: amplifier volume level
 * Brightness: LED brightness level
-* Analog Control: if on, volume and brightness are controlled by potentiometer insted of web page
-* Disable: if on, disables current filter settings without changing them
+* Analog Control: if on, volume and brightness are controlled by potentiometer instead of web page
+* Disable: if on, disables current filter settings without changing them to hear original
 
 Example configuration for radio style voice:  
 * Low Cut: Frequency 1500, Cascade 2
@@ -78,8 +84,28 @@ Example configuration for dalek style voice:
 * High Cut: Frequency 2000, Q Factor 0.7
 * Ring Mod: Frequency 50
 
-Browser functions only tested on Chrome.
-
 ![image1](extras/VC.png)
+
+
+## Configuration Tabs
+
+* **Show Log**: Opens web socket to view log messages dynamically.
+
+* **OTA Update**: Update application bin file or files in **/data** folder using OTA.
+
+* **Edit Config**:
+
+  * **Reboot & Save**: Save configuration changes and restart the ESP to apply.
+
+  * **Clear NVS**: Clear current passwords.
+
+  * **Reload /data**: Reload data files from github.
+
+  * **Wifi**: WiFi and webserver settings.
+
+  * **Pins**: Define pins used by microphone, amplifier, buttons.
+
+
+Browser functions only tested on Chrome.
 
 

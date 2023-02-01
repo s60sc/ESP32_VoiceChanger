@@ -20,7 +20,7 @@
 #ifndef Biquad_h
 #define Biquad_h
 
-#include "myConfig.h"
+#include "appGlobals.h"
 
 enum {
     bq_type_lowpass = 0,

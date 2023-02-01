@@ -12,7 +12,7 @@
 //
 // s60sc 2021
 
-#include "myConfig.h"
+#include "appGlobals.h"
 #include "Biquad.h"
 
 // web filter parameters
@@ -116,14 +116,14 @@ void applyFilters(int8_t volume) {
     for (int k = 0; k < filtIdx; k++) {
       // apply each required biquad filter in turn
       for (int i = 0; i < DMA_BUFF_LEN; i++)  
-        SAMPLE_BUFFER[i] = (int16_t)filter[k]->process((float)SAMPLE_BUFFER[i]); 
+        audBuffer[i] = (int16_t)filter[k]->process((float)audBuffer[i]); 
     }
   
     if (RING_MOD) {
       // output dalek style voice, by multiplying input value with sine wave value
       for (int i = 0; i < DMA_BUFF_LEN; i++) { 
-        int32_t thisSample = (int32_t)SAMPLE_BUFFER[i] * sineWaveTable[i % dataPoints];
-        SAMPLE_BUFFER[i] = (int16_t)(thisSample / SW_AMP); 
+        int32_t thisSample = (int32_t)audBuffer[i] * sineWaveTable[i % dataPoints];
+        audBuffer[i] = (int16_t)(thisSample / SW_AMP); 
       }
     }
     
@@ -132,16 +132,16 @@ void applyFilters(int8_t volume) {
       static int16_t reverbBuff[REVERB_SAMPLES] = {0};
       static size_t reverbPtr = 0;
       for (int i = 0; i < DMA_BUFF_LEN; i++) {
-        int16_t reverbed = SAMPLE_BUFFER[i] + reverbBuff[reverbPtr] / (DECAY_FACTOR + 1);
-        SAMPLE_BUFFER[i] = reverbBuff[reverbPtr] = reverbed;
+        int16_t reverbed = audBuffer[i] + reverbBuff[reverbPtr] / (DECAY_FACTOR + 1);
+        audBuffer[i] = reverbBuff[reverbPtr] = reverbed;
         reverbPtr = (reverbPtr + 1) % REVERB_SAMPLES;
       }
     }
   }
   for (int i = 0; i < DMA_BUFF_LEN; i++) {   
     // apply volume control 
-    SAMPLE_BUFFER[i] = volume < 0 ? SAMPLE_BUFFER[i] / abs(volume) : constrain((int32_t)SAMPLE_BUFFER[i] * volume, SHRT_MIN, SHRT_MAX);
-    if (AMP_TYPE == ADC_TYPE) SAMPLE_BUFFER[i] += 0x8000; // needs to be unsigned for DAC output
+    audBuffer[i] = volume < 0 ? audBuffer[i] / abs(volume) : constrain((int32_t)audBuffer[i] * volume, SHRT_MIN, SHRT_MAX);
+    if (AMP_TYPE == ADC_TYPE) audBuffer[i] += 0x8000; // needs to be unsigned for DAC output
   }
 
   if (!DISABLE) {
@@ -150,9 +150,9 @@ void applyFilters(int8_t volume) {
       // clip factor: 1 = soft clip, 10 = hard clip
       float clipFactor = 1 + CLIP_FACTOR / 6.0;
       for (int i = 0; i < DMA_BUFF_LEN; i++) {
-        float inputF = (float)(SAMPLE_BUFFER[i]) / SHRT_MAX;
+        float inputF = (float)(audBuffer[i]) / SHRT_MAX;
         float c = inputF * clipFactor;
-        SAMPLE_BUFFER[i] = (int16_t)(SHRT_MAX * (1 / clipFactor * (c / (1.0 + 0.28 * (c * c)))));
+        audBuffer[i] = (int16_t)(SHRT_MAX * (1 / clipFactor * (c / (1.0 + 0.28 * (c * c)))));
       }
     }
   }
