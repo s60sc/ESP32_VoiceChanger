@@ -241,6 +241,8 @@
         height: var(--inputSize);
         min-width: var(--buttonSize);
       }
+      
+      /*** range slider ***/
 
       input[type=range] {
         -webkit-appearance: none;
@@ -273,19 +275,15 @@
         -webkit-appearance: none;
         margin-top: calc(-1 * var(--buttonHalf));
       }
+      
       input[type=range]:focus::-webkit-slider-runnable-track {
         background: var(--inputBackground);
       }
-      
-      .range-value{
-        position: absolute;
-        top: -50%;
-      }
-      
-      .range-value span{
+  
+      div[name="rangeVal"] {
         width: var(--buttonDbl);
         height: var(--buttonSize);
-        line-height: var(--buttonSize);
+        line-height: 150%;
         text-align: center;
         background: var(--buttonReady); 
         color: var(--buttonText); 
@@ -294,15 +292,15 @@
         position: absolute;
         left: 50%;
         transform: translate(-50%, 0);
-        border-radius: var(--buttonQuart);
-        top: var(--buttonHalf); 
+        border-radius: 25%;
+        top: -25%; 
       }
 
-      .range-max,.range-min {
+       div[name="rangeMin"], div[name="rangeMax"] {
         display: inline-block;
         padding: 0 var(--buttonQuart);
       }
-
+      
 
       /* checkbox toggle switch slider */
             
@@ -392,6 +390,11 @@
       }
 
       .table-group table {
+         
+       
+      
+              
+                     
         width: 100%;
       }
         
@@ -427,7 +430,7 @@
   <body>
     <div class="tab">
       <ul class="navtop">
-        <button class="tablinks active" name="VoiceChanger">VoiceChanger</button>
+        <button class="tablinks active" name="VoiceChanger" id="mainTab">VoiceChanger</button>
         <button class="tablinks" name="ShowLog">Show Log</button>
         <button class="tablinks" name="EditConfig">Edit Config</button>
         <button class="tablinks" name="OTAUpload">OTA Upload</button>
@@ -474,18 +477,12 @@
         </td><td>
           <div class="input-group">
             <label for="BPfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter band pass central frequency" type="range" id="BPfreq" min="0" max="8000" value="4000" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter band pass central frequency" type="range" id="BPfreq" min="0" max="8000" value="4000" step="10">
           </div>
         </td><td>
           <div class="input-group">
             <label for="BPqval">Q factor: </label>
-            <div class="range-min">0.1</div>
-            <input title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="10" step="0.1" value="0.7">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
+            <input class="logslider" title="Set Q resonance factor" type="range" id="BPqval" min="0.1" max="10" step="0.1" value="0.7">
           </div>
         </td></tr>
         <tr><td>      
@@ -509,18 +506,12 @@
         </td><td>
           <div class="input-group">
             <label for="HPfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter high pass frequency" type="range" id="HPfreq" min="0" max="8000" value="4000" step="10">
-             <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter high pass frequency" type="range" id="HPfreq" min="0" max="8000" value="4000" step="10">
           </div>
         </td><td>
           <div class="input-group">
             <label for="HPqval">Q factor: </label>
-            <div class="range-min">0.1</div>
-            <input title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="10" step="0.1" value="0.7">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
+            <input class="logslider" title="Set Q resonance factor" type="range" id="HPqval" min="0.1" max="10" step="0.1" value="0.7">
           </div>
         </td></tr>
         <tr><td>   
@@ -544,18 +535,12 @@
         </td><td>    
           <div class="input-group">
             <label for="LPfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter low pass frequency" type="range" id="LPfreq" min="0" max="8000" value="4000" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter low pass frequency" type="range" id="LPfreq" min="0" max="8000" value="4000" step="10">
           </div>
         </td><td>  
            <div class="input-group">
             <label for="LPqval">Q factor: </label>
-            <div class="range-min">0.1</div>
-            <input title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="10" step="0.1" value="0.7">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
+            <input class="logslider" title="Set Q resonance factor" type="range" id="LPqval" min="0.1" max="10" step="0.1" value="0.7">
           </div>
         </td></tr>
         <tr><td>    
@@ -571,18 +556,14 @@
         </td><td> 
           <div class="input-group">
             <label for="HSfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter high shelf frequency" type="range" id="HSfreq" min="0" max="8000" value="4000" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter high shelf frequency" type="range" id="HSfreq" min="0" max="8000" value="4000" step="10">
+                                                                                 
           </div>
         </td><td>  
            <div class="input-group">
             <label for="HSgain">Gain dB:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter gain" type="range" id="HSgain" min="0" max="20" value="0">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">20</div>
+            <input title="Set filter gain" type="range" id="HSgain" min="0" max="20" value="0" step="any">
+                                                    
           </div>
         </td></tr>
         <tr><td>    
@@ -598,18 +579,14 @@
         </td><td>   
           <div class="input-group">
             <label for="LSfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter low shelf frequency" type="range" id="LSfreq" min="0" max="8000" value="4000" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter low shelf frequency" type="range" id="LSfreq" min="0" max="8000" value="4000" step="10">
+                                                                            
+                                                                  
           </div>
         </td><td>  
           <div class="input-group">
             <label for="LSgain">Gain dB:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter gain" type="range" id="LSgain" min="0" max="20" value="0">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">20</div>
+            <input title="Set filter gain" type="range" id="LSgain" min="0" max="20" value="0" step='any'>
           </div>
         </td></tr>
         <tr><td>       
@@ -625,25 +602,18 @@
         </td><td>   
           <div class="input-group">
             <label for="PKfreq">Frequency:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter peak frequency" type="range" id="PKfreq" min="0" max="8000" value="4000" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">8000</div>
+            <input class="freq" title="Set filter peak frequency" type="range" id="PKfreq" min="0" max="8000" value="4000" step="10">
+                                                           
+                                                                   
           </div>
         </td><td rowspan=2>     
           <div class="input-group">
             <label for="PKgain">Gain dB:</label>
-            <div class="range-min">0</div>
-            <input title="Set filter gain" type="range" id="PKgain" min="0" max="20" value="0">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">20</div>
+            <input title="Set filter gain" type="range" id="PKgain" min="0" max="20" value="0"  step='any'>
           </div><br>
           <div class="input-group">
             <label for="PKqval">Q factor: </label>
-            <div class="range-min">0.1</div>
-            <input title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="10" step="0.1" value="0.7">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
+            <input class="logslider" title="Set Q resonance factor" type="range" id="PKqval" min="0.1" max="10" step="0.1" value="0.7">
           </div>
         </td></tr>
          <tr><td>       
@@ -659,10 +629,7 @@
         </td><td>       
          <div class="input-group"> 
             <label for="ClipFac">Hardness:</label>
-            <div class="range-min">1</div>
             <input title="Set clipping factor, higher is harder" type="range" id="ClipFac" min="1" max="10" value="1">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
           </div> 
          </td></tr>
          <tr><td>       
@@ -678,10 +645,7 @@
         </td><td>       
          <div class="input-group"> 
             <label for="DecayFac">Decay Factor:</label>
-            <div class="range-min">1</div>
             <input title="Reverb decay factor, higher is faster" type="range" id="DecayFac" min="1" max="10" value="1">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">10</div>
           </div> 
          </td><td></td></tr>
          <tr><td>       
@@ -697,18 +661,12 @@
          </td><td>       
           <div class="input-group">
             <label for="SineFreq">Frequency:</label> 
-            <div class="range-min">0</div>
             <input title="Set sine wave frequency" type="range" id="SineFreq" min="0" max="400" value="80" step="10">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">400</div>
           </div>
          </td><td>
           <div class="input-group">
             <label for="SineAmp">Amplitude:</label> 
-            <div class="range-min">1</div>
             <input title="Set sine wave amplitude" type="range" id="SineAmp" min="1" max="7" value="3">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">7</div>
           </div>
          </td></tr>
          <tr><td>  
@@ -750,26 +708,17 @@
          </td><td>
             <div class="input-group">
             <label for="PreAmp">Preamp Gain:</label>
-            <div class="range-min">0</div>
             <input title="Set microphone preamp gain level" type="range" id="PreAmp" min="0" max="7" value="4">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">7</div>
             </div>
             <div style="line-height:50%;"></div>
             <div class="input-group">
             <label for="AmpVol">Volume:</label>
-            <div class="range-min">0</div>
             <input title="Set ampifier volume level" type="range" id="AmpVol" min="0" max="7" value="4">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">7</div>
             </div>
             <div style="line-height:50%;"></div>
             <div class="input-group">
             <label for="Bright">Brightness:</label>
-            <div class="range-min">0</div>
             <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="4">
-            <div class="range-value" name="rangeVal"></div>
-            <div class="range-max">7</div>
             </div>
          </td></tr>
          <tr><td> 
@@ -778,6 +727,7 @@
             <div class="switch">
               <input id="Disable" type="checkbox">
               <label title="Disable current filter selection" class="slider" for="Disable"></label>
+                                                                                                                                                        
             </div>
           </div> 
           <div class="input-group">
@@ -909,17 +859,21 @@
         const $ = document.querySelector.bind(document);
         const $$ = document.querySelectorAll.bind(document);
         const baseFontSize = parseInt(window.getComputedStyle($('body')).fontSize); 
-       
+        
         initialise();
         
         function initialise() {
           try {
             //addButtons();
+            addRangeData();
+            setMaxFreq();
             setListeners();
             //initWebSocket();
-            loadStatus(""); 
             //if (hbTimer == null) setTimeout(refreshStatus, refreshInterval);
-          } catch (error) {showLog("Error: " + error.message);}
+          } catch (error) {
+            showLog("Error: " + error.message);
+            alert("Error: " + error.message);
+          }
         }
         
         /*********** websocket functions ***********/
@@ -995,7 +949,6 @@
             if (e.name == 'mainPage') show($('#main'));
             else hide($('#main'));
           } catch {}
-          $$('input[type=range]').forEach(el => {rangeMarker(el);});                         
         }
 
         function accordian(accId) {
@@ -1004,15 +957,38 @@
           if (panel.style.display === "inherit") panel.style.display = "none";
           else panel.style.display = "inherit";
         }
-        
-        function rangeMarker(range) {
-          const rangeVal = $('#'+range.id).parentElement.children.rangeVal;
+
+        function rangeSlider(el, isPos = true, statusVal = null) {
+          // update range slider marker position and value 
+          const rangeVal = el.parentElement.children.rangeVal;
+          if (statusVal != null) rangeVal.innerHTML = statusVal;
+          const currVal = isPos ? parseFloat(el.value) : parseFloat(rangeVal.innerHTML);
+          const minval = parseFloat(el.min);
+          const maxval = parseFloat(el.max);
+          const decPlaces = (el.step > 0 && el.step < 1) || el.step == 'any' ? 1 : 0;
+          if (el.classList.contains('logslider')) {
+            // range value is logarithmic
+            const minlog = Math.log(minval);
+            const maxlog = Math.log(maxval) ;
+            const scale = (maxlog - minlog) / (maxval - minval);
+            // if isPos then get value from slider positional change by user, else set slider position from initial value.
+            if (isPos) rangeVal.innerHTML = Math.exp((currVal - minval) * scale + minlog).toFixed(decPlaces);
+            else el.value = minval + ((currVal == 0 ? 0 : Math.log(currVal)) - minlog) / scale; 
+          } else rangeVal.innerHTML = parseFloat(el.value).toFixed(decPlaces);
+          
+          // position for range marker
           const rangeFontSize = parseInt(window.getComputedStyle($('input[type=range]')).fontSize); 
-          let position = (range.clientWidth - rangeFontSize) * (range.value - range.min) / (range.max - range.min);
-          position += range.offsetLeft + (rangeFontSize / 2);
-          rangeVal.innerHTML = '<span>'+range.value+'</span>';
+          let position = (el.clientWidth - rangeFontSize) * (el.value - minval) / (maxval - minval); 
+          position += el.offsetLeft + (rangeFontSize / 2);
           rangeVal.style.left = 'calc('+position+'px)';
-       }
+        }
+        
+        let observer = new IntersectionObserver ( function(entries) {
+          // recalc each range slider that becomes visible
+            entries.forEach(el => { if (el.isIntersecting === true) rangeSlider(el['target']); });
+          }, { threshold: [0] }
+        );
+        $$('input[type=range]').forEach(el => { observer.observe(el); });
         
         function addButtons() {
           // add commmon buttons to relevant sections
@@ -1024,11 +1000,20 @@
           });
         }
         
+        function addRangeData() {
+          // add labelling for rangle sliders
+          $$('input[type="range"]').forEach(el => {
+            if (!isDefined(el.parentElement.children.rangeMin)) el.insertAdjacentHTML("beforebegin", '<div name="rangeMin"/>'+el.min+'</div>');
+            el.insertAdjacentHTML("afterend", '<div name="rangeVal">'+el.value+'</div>');
+            if (!isDefined(el.parentElement.children.rangeMax)) el.insertAdjacentHTML("afterend", '<div name="rangeMax"/>'+el.max+'</div>');
+            rangeSlider(el, false);
+          });
+        }
+            
         /*********** data processing functions ***********/
         
         async function loadStatus(specifier) {
           // request and load current status from app
-          $$('input[type=range]').forEach(el => {rangeMarker(el);});
           const response = await fetch(baseHost+'/status'+specifier);
           if (response.ok) {
             updateData = await response.json();
@@ -1054,10 +1039,7 @@
             else if (eld) {if (eld.classList.contains('displayonly')) eld.innerHTML = value;} // display text 
             else if (eli != null) { // input fields
               if (eli.type === 'checkbox') eli.checked = !!Number(value);
-              else if (eli.type === 'range') {
-                eli.value = value; 
-                rangeMarker(eli); 
-              }
+              else if (eli.type === 'range') rangeSlider(eli, false, value); 
               else if (eli.type === 'option') eli.selected = true;
               else eli.value = value; 
             }
@@ -1128,6 +1110,12 @@
           $('#alertText').innerHTML = "";
         }
         
+        async function applyChanges() {
+          sendControl('save', 1);
+          await sleep(1000);
+          sendControl('reset', 1);
+        }
+        
         function dbg(msg) {
           console.log('***** '+msg);
         }
@@ -1167,7 +1155,7 @@
 
           // input events
           document.addEventListener("input", function (event) {
-            if (event.target.type === 'range') rangeMarker(event.target);
+            if (event.target.type === 'range') rangeSlider(event.target);
           });
           
           // user command entered on Log tab
@@ -1180,7 +1168,7 @@
           
           // recalc range marker positions 
           window.addEventListener('resize', function (event) {
-            $$('input[type=range]').forEach(el => {rangeMarker(el);});
+            $$('input[type=range]').forEach(el => { rangeSlider(el); });
           });
           
           // close web socket on leaving page
@@ -1321,8 +1309,15 @@
                       inputHtml += '" value="'+ saveVal +'"' + (saveVal == 1 ? ' checked' : '') + '>';
                       inputHtml += '<label class="slider" for="' + saveKey + '"></label></div>';
                     break;
-                    case 'R': // read only
+                    case 'D': // display only
                       inputHtml = '<input type="text" class="configItem" id="' + saveKey + '" value="'+ saveVal +'" readonly>';
+                    break;
+                    case 'R': // R:min:max:step
+                      // format number as range slider 
+                      const range = value.substring(2).split(":");
+                      inputHtml = '<div class="input-group">';
+                      inputHtml += '<input type="range" id="' + saveKey + '" min="' + range[0] + '" max="' + range[1];
+                      inputHtml += '" step="' + range[2] + '" value="' + saveVal + '"><div name="rangeVal">' + saveVal + '</div></div>';
                     break;
                     default:
                       console.log("Unhandled config input type " + value);
@@ -1392,9 +1387,10 @@
             else if (key == "otafile") otaUploadFile();
             else if (key == "alertMsg") showAlert(value);
             else if (key == "clearWSlog") $('#applog').innerHTML = "";
+            else if (key == "reset") applyChanges();
             else if (key == "wsMode") value == 1 ? initWebSocket() : closeWS();
             else if (key == "pinout") getConfig("01");
-            else if (key == "reset") applyChanges();
+            else if (key == "Srate") setMaxFreq(fromUser); 
             else if (isDefined($('#'+key)) && $('#'+key).classList.contains("control-action")) sendControl('action', value);
             else if (isDefined($('#'+key)) && $('#'+key).classList.contains("download-action")) window.location.href='/control?action=5'
             else if (isDefined($('#'+key)) && $('#'+key).name == 'MicChan') changeI2Schan(key, value);
@@ -1410,10 +1406,16 @@
           else $('#micI2S').checked = +!value;
         }
         
-        async function applyChanges() {
-          sendControl('save', 1);
-          await sleep(1000);
-          sendControl('reset', 1);
+        function setMaxFreq(fromUser = false) {
+          // change frequency max limits and initial values 
+          const srate = $('input[name="Srate"]:checked').value;
+          $$('input[type="range"].freq').forEach(el => { 
+            el.max = srate / 2;
+            el.parentElement.children.rangeMax.innerHTML = srate / 2
+            if (fromUser) rangeSlider(el);
+            else el.value = srate / 4;
+          });
+          if (fromUser) sendControl("Srate", srate); 
         }
       
       });         
