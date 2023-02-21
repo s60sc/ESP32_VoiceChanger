@@ -15,6 +15,7 @@
 #include <driver/i2s.h>
 #include "esp_http_server.h"
 #include <ESPmDNS.h> 
+#include <HTTPClient.h>
 #include "lwip/sockets.h"
 #include <vector>
 #include "ping/ping_sock.h"
@@ -45,7 +46,7 @@ void debugMemory(const char* caller);
 void dateFormat(char* inBuff, size_t inBuffLen, bool isFolder);
 void deleteFolderOrFile(const char* deleteThis);
 void devSetup();
-void doIOextPing();
+void doAppPing();
 void doRestart(const char* restartStr);
 void emailAlert(const char* _subject, const char* _message);
 const char* encode64(const char* inp);
@@ -60,6 +61,7 @@ const char* getEncType(int ssidIndex);
 time_t getEpoch();
 bool getLocalNTP();
 void getOldestDir(char* oldestDir);
+size_t getFreeSpace();
 void goToSleep(int wakeupPin, bool deepSleep);
 void initStatus(int cfgGroup, int delayVal);
 void killWebSocket();
@@ -124,6 +126,7 @@ extern int refreshVal;
 extern bool configLoaded;
 extern bool dataFilesChecked;
 extern bool allowSpaces;// set set true to allow whitespace in configs.txt key values
+extern const char* git_rootCACertificate;
   
 // ftp server
 extern char ftp_server[];

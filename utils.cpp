@@ -191,7 +191,7 @@ bool startWifi(bool firstcall) {
 static void pingSuccess(esp_ping_handle_t hdl, void *args) {
   if (!timeSynchronized) getLocalNTP();
   if (!dataFilesChecked) dataFilesChecked = checkDataFiles();
-  doIOextPing();
+  doAppPing();
 }
 
 static void pingTimeout(esp_ping_handle_t hdl, void *args) {
@@ -312,13 +312,12 @@ bool changeExtension(char* outName, const char* inName, const char* newExt) {
 }
 
 void showProgress() {
-  // show progess as dots if not verbose
+  // show progess as dots 
   static uint8_t dotCnt = 0;
-  Serial.print("."); // progress marker
+  logPrint("."); // progress marker
   if (++dotCnt >= 50) {
     dotCnt = 0;
-    Serial.println("");
-    Serial.flush();
+    logPrint("\n");
   }
 }
 
@@ -341,7 +340,7 @@ void listBuff (const uint8_t* b, size_t len) {
   else {
     for (size_t i = 0; i < len; i += 16) {
       int linelen = (len - i) < 16 ? (len - i) : 16;
-      for (size_t k = 0; k < linelen; k++) printf(" %02x", b[i+k]);
+      for (size_t k = 0; k < linelen; k++) logPrint(" %02x", b[i+k]);
       puts(" ");
     }
   }
@@ -384,7 +383,7 @@ void checkMemory() {
 void debugMemory(const char* caller) {
   if (CHECK_MEM) {
     delay(FLUSH_DELAY);
-    printf("%s > Free: heap %u, block: %u, pSRAM %u\n", caller, ESP.getFreeHeap(), heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), ESP.getFreePsram());
+    logPrint("%s > Free: heap %u, block: %u, pSRAM %u\n", caller, ESP.getFreeHeap(), heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), ESP.getFreePsram());
   }
 }
 
@@ -515,13 +514,11 @@ void logSetup() {
   Serial.begin(115200);
   Serial.setDebugOutput(false);
   Serial.println(); 
-  debugMemory("init");
   logSemaphore = xSemaphoreCreateBinary(); // flag that log message formatted
   logMutex = xSemaphoreCreateMutex(); // control access to log formatter
   xSemaphoreGive(logSemaphore);
   xSemaphoreGive(logMutex);
-  xTaskCreate(logTask, "logTask", 1024 * 2, NULL, 1, &logHandle);
-  debugMemory("logSetup");
+  xTaskCreate(logTask, "logTask", 1024 * 2, NULL, 1, &logHandle); 
 }
 
 void formatHex(const char* inData, size_t inLen) {

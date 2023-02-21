@@ -51,7 +51,7 @@ static int getKeyPos(std::string thisKey) {
   );
   int keyPos = std::distance(configs.begin(), lower); 
   if (thisKey == configs[keyPos][0]) return keyPos;
-  else LOG_DBG("Key %s not found", thisKey.c_str()); 
+//  else LOG_DBG("Key %s not found", thisKey.c_str()); 
   return -1; // not found
 }
 
@@ -110,20 +110,23 @@ static void saveConfigVect() {
       // recreate config file with updated content
       if (!strcmp(row[0].c_str() + strlen(row[0].c_str()) - 5, "_Pass")) 
         // replace passwords with asterisks
-        sprintf(configLine, "%s%c%.*s%c%s%c%s%c%s\n", row[0].c_str(), DELIM, strlen(row[1].c_str()), FILLSTAR, DELIM, row[2].c_str(), DELIM, row[3].c_str(), DELIM, row[4].c_str());
-      else sprintf(configLine, "%s%c%s%c%s%c%s%c%s\n", row[0].c_str(), DELIM, row[1].c_str(), DELIM, row[2].c_str(), DELIM, row[3].c_str(), DELIM, row[4].c_str());
+        snprintf(configLine, FILE_NAME_LEN + 100, "%s%c%.*s%c%s%c%s%c%s\n", row[0].c_str(), DELIM, strlen(row[1].c_str()), FILLSTAR, DELIM, row[2].c_str(), DELIM, row[3].c_str(), DELIM, row[4].c_str());
+      else snprintf(configLine, FILE_NAME_LEN + 100, "%s%c%s%c%s%c%s%c%s\n", row[0].c_str(), DELIM, row[1].c_str(), DELIM, row[2].c_str(), DELIM, row[3].c_str(), DELIM, row[4].c_str());
       file.write((uint8_t*)configLine, strlen(configLine));
     }
-    file.close();
     LOG_ALT("Config file saved");
   }
+  file.close();
 }
 
 static bool loadConfigVect() {
   File file = fp.open(CONFIG_FILE_PATH, FILE_READ);
   if (!file || !file.size()) {
     LOG_ERR("Failed to load file %s", CONFIG_FILE_PATH);
-    if (!file.size()) STORAGE.remove(CONFIG_FILE_PATH);
+    if (!file.size()) {
+      file.close();
+      STORAGE.remove(CONFIG_FILE_PATH);
+    }
     return false;
   } else {
     // force vector into psram if available
@@ -142,8 +145,8 @@ static bool loadConfigVect() {
     );
     // return malloc to default 
     if (psramFound()) heap_caps_malloc_extmem_enable(4096);
-    file.close();
   }
+  file.close();
   return true;
 }
 
@@ -179,7 +182,6 @@ static bool loadPrefs() {
     savePrefs(); // if prefs do not yet exist
     return false;
   }
-
   if (!strlen(ST_SSID)) {
      // first call only after instal
     prefs.getString("ST_SSID", ST_SSID, MAX_PWD_LEN);
@@ -187,6 +189,7 @@ static bool loadPrefs() {
   } 
 
   prefs.getString("ST_Pass", ST_Pass, MAX_PWD_LEN);
+  updateConfigVect("ST_Pass", ST_Pass);
   prefs.getString("AP_Pass", AP_Pass, MAX_PWD_LEN);
   prefs.getString("Auth_Pass", Auth_Pass, MAX_PWD_LEN); 
 #ifdef INCLUDE_FTP
@@ -266,7 +269,7 @@ void updateStatus(const char* variable, const char* _value) {
     saveConfigVect();
   } else {
     res = updateAppStatus(variable, value);
-    if (!res) LOG_DBG("Unrecognised config: %s", variable);
+//    if (!res) LOG_DBG("Unrecognised config: %s", variable);
   }
   if (res) updateConfigVect(variable, value);  
 }
@@ -331,14 +334,18 @@ bool loadConfig() {
   if (jsonBuff == NULL) {
     jsonBuff = psramFound() ? (char*)ps_malloc(JSON_BUFF_LEN) : (char*)malloc(JSON_BUFF_LEN); 
   }
+  char variable[32] = {0,};
+  char value[FILE_NAME_LEN] = {0,};
   if (loadConfigVect()) {
     retrieveConfigVal("appId", appId);
     if (strcmp(appId, APP_NAME)) {
+      // cleanup storage for different app
       sprintf(startupFailure, "Wrong configs.txt file, expected %s, got %s", APP_NAME, appId);
+      deleteFolderOrFile(DATA_DIR);
+      savePrefs(false);
       return false;
     }
     loadPrefs(); // overwrites any corresponding entries in config
-  
     // set default hostname and AP SSID if config is null
     retrieveConfigVal("hostName", hostName);
     if (!strlen(hostName)) {
@@ -351,12 +358,13 @@ bool loadConfig() {
     }
   
     // load variables from stored config vector
-    char variable[32] = {0,};
-    char value[FILE_NAME_LEN] = {0,};
     while (getNextKeyVal(variable, value)) updateStatus(variable, value);
     configLoaded = true;
     debugMemory("loadConfig");
     return true;
   }
+  // no config file
+  loadPrefs(); 
+  while (getNextKeyVal(variable, value)) updateStatus(variable, value);
   return false;
 }

@@ -60,9 +60,9 @@ static esp_err_t fileHandler(httpd_req_t* req, bool download) {
     httpd_resp_set_type(req, "application/octet");
     char contentDisp[FILE_NAME_LEN + 50];
     char contentLength[10];
-    sprintf(contentDisp, "attachment; filename=%s", inFileName);
+    snprintf(contentDisp, FILE_NAME_LEN + 50, "attachment; filename=%s", inFileName);
     httpd_resp_set_hdr(req, "Content-Disposition", contentDisp);
-    sprintf(contentLength, "%i", df.size());
+    snprintf(contentLength, 10, "%i", df.size());
     httpd_resp_set_hdr(req, "Content-Length", contentLength);
   }
   
@@ -85,7 +85,7 @@ static esp_err_t indexHandler(httpd_req_t* req) {
     return httpd_resp_send(req, startupFailure, HTTPD_RESP_USE_STRLEN);
   }
   // Show wifi wizard if not setup, using access point mode  
-  if (!fp.exists(CONFIG_FILE_PATH) && WiFi.status() != WL_CONNECTED) {
+  if (!fp.exists(INDEX_PAGE_PATH) && WiFi.status() != WL_CONNECTED) {
     // Open a basic wifi setup page
     httpd_resp_set_type(req, "text/html");                              
     return httpd_resp_send(req, defaultPage_html, HTTPD_RESP_USE_STRLEN);
@@ -95,7 +95,7 @@ static esp_err_t indexHandler(httpd_req_t* req) {
       // authentication required
       size_t credLen = strlen(Auth_Name) + strlen(Auth_Pass) + 2; // +2 for colon & terminator
       char credentials[credLen];
-      sprintf(credentials, "%s:%s", Auth_Name, Auth_Pass);
+      snprintf(credentials, credLen, "%s:%s", Auth_Name, Auth_Pass);
       size_t authLen = httpd_req_get_hdr_value_len(req, "Authorization") + 1;
       if (authLen) {
         // check credentials supplied are valid

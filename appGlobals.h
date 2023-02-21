@@ -28,7 +28,7 @@
 #define FLUSH_DELAY 0 // for debugging crashes
  
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.2"
+#define APP_VER "1.2.1"
 
 #define MAX_CLIENTS 3 // allowing too many concurrent web clients can cause errors
 #define DATA_DIR "/data"

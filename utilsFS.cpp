@@ -94,6 +94,8 @@ bool startStorage() {
     if ((fs::LittleFSFS*)&STORAGE == &LittleFS) {
       strcpy(fsType, "LittleFS");
       res = LittleFS.begin(formatIfMountFailed);
+      // create data folder if not present
+      if (res && !LittleFS.exists(DATA_DIR)) LittleFS.mkdir(DATA_DIR);
     }
 #endif
     if (res) {  
@@ -140,8 +142,12 @@ void inline getFileDate(File file, char* fileDate) {
   strftime(fileDate, sizeof(fileDate), "%Y-%m-%d %H:%M:%S", &lt);
 }
 
+size_t getFreeSpace() {
+  return STORAGE.totalBytes() - STORAGE.usedBytes();
+}
+
 bool checkFreeSpace() { 
-  // Check for sufficient space on SD card
+  // Check for sufficient space on storage
   bool res = false;
   size_t freeSize = (size_t)((STORAGE.totalBytes() - STORAGE.usedBytes()) / ONEMEG);
   if (!sdFreeSpaceMode && freeSize < sdMinCardFreeSpace) 
@@ -157,7 +163,7 @@ bool checkFreeSpace() {
 #endif
       deleteFolderOrFile(oldestDir);
     }
-    LOG_INF("Card free space: %uMB", freeSize);
+    LOG_INF("Storage free space: %uMB", freeSize);
     res = true;
   }
   return res;
