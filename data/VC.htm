@@ -961,7 +961,7 @@
         function rangeSlider(el, isPos = true, statusVal = null) {
           // update range slider marker position and value 
           const rangeVal = el.parentElement.children.rangeVal;
-          if (statusVal != null) rangeVal.innerHTML = statusVal;
+          if (statusVal != null) el.value = statusVal;
           const currVal = isPos ? parseFloat(el.value) : parseFloat(rangeVal.innerHTML);
           const minval = parseFloat(el.min);
           const maxval = parseFloat(el.max);
@@ -1148,6 +1148,7 @@
               if (e.type === 'checkbox') processStatus(ID, e.id, e.checked ? 1 : 0);
               else if (et === 'button' || et === 'file') processStatus(ID, e.id, 1);
               else if (et === 'radio') { if (e.checked) processStatus(ID, e.name, value); } 
+              else if (et === 'range') processStatus(ID, e.id, e.parentElement.children.rangeVal.innerHTML); 
               else if (e.hasAttribute('id')) processStatus(ID, e.id, value);
             }
             else if (e.tagName == 'SELECT') processStatus(ID, e.id, value);
