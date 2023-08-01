@@ -28,6 +28,7 @@ DecayFac~1~98~T~n/a
 RM~0~98~T~n/a
 SineFreq~80~98~T~n/a
 SineAmp~5~98~T~n/a
+Pitch~1~98~T~n/a
 AmpVol~3~98~T~n/a
 PreAmp~3~98~T~n/a
 Bright~3~98~T~n/a
@@ -55,7 +56,7 @@ Auth_Name~~0~T~Optional user name for web page login
 Auth_Pass~~0~T~Optional user name for web page password
 hostName~VoiceChanger~0~T~Device host name
 wifiTimeoutSecs~30~0~N~WiFi connect timeout (secs)
-allowSpaces~0~0~C~Allow whitespace in configs.txt 
+timezone~GMT0~0~T~Timezone string: tinyurl.com/TZstring
 amicSckIo~~1~N~pin for microphone I2S SCK
 amicWsIo~~1~N~pin for microphone I2S WS, PDM CLK
 amicSdIo~~1~N~pin for microphone I2S SD, PDM DAT, ADC  
@@ -69,3 +70,6 @@ buttonStopPin~~1~N~pin to stop: play, record, passthru
 sanalogPin~~1~N~analog pin for volume & brightness pot control
 saudioLedPin~~1~N~pin for audio controlled output lights
 switchModePin~~1~N~pin to use pot for brightness (hi) or vol (lo)
+cfgVer~1~99~T~na
+htmVer~1~99~T~na
+jsVer~0~99~T~na
