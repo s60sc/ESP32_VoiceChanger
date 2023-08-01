@@ -45,6 +45,7 @@ int SW_FREQ;    // frequency of generated sine wave
 uint8_t SW_AMP;    // amplitude of generated sine wave
 int CLIP_FACTOR; // factor used to clip higher amplitudes
 int DECAY_FACTOR; // factor used control reverb decay
+float PITCH_SHIFT; // factor used shift pitch up or down
 
 // local definitions
 static const int MAX_FILTERS = 10;
@@ -101,6 +102,7 @@ static inline void initBiquad(int ftype, float freq, float Qval, float gain, int
 void setupFilters() {
   calcQvals();
   filtIdx = 0;
+  long framesize = audBytes / sizeof(int16_t);
   if (RING_MOD) generateSineWave(SW_FREQ, SW_AMP);
   if (BAND_PASS) initBiquad(bq_type_bandpass, BP_FREQ, BP_Q, 0, BP_CAS);
   if (HIGH_PASS) initBiquad(bq_type_highpass, HP_FREQ, HP_Q, 0, HP_CAS);
@@ -108,6 +110,7 @@ void setupFilters() {
   if (HIGH_SHELF) initBiquad(bq_type_highshelf, HS_FREQ, 1, HS_GAIN, 1);
   if (LOW_SHELF) initBiquad(bq_type_lowshelf, LS_FREQ, 1, LS_GAIN, 1);
   if (PEAK) initBiquad(bq_type_peak, PK_FREQ, PK_Q, PK_GAIN, 1);
+  if (PITCH_SHIFT != 1.0) smbPitchShiftInit(PITCH_SHIFT, framesize, OSAMP, SAMPLE_RATE);
 }
 
 void applyFilters(int8_t volume) { 
@@ -143,6 +146,9 @@ void applyFilters(int8_t volume) {
     audBuffer[i] = volume < 0 ? audBuffer[i] / abs(volume) : constrain((int32_t)audBuffer[i] * volume, SHRT_MIN, SHRT_MAX);
     if (AMP_TYPE == ADC_TYPE) audBuffer[i] += 0x8000; // needs to be unsigned for DAC output
   }
+
+  // change pitch if required, resource intensive
+  if (PITCH_SHIFT != 1.0) smbPitchShift(DMA_BUFF_LEN / sizeof(int16_t), audBuffer, audBuffer);
 
   if (!DISABLE) {
     // clip higher amplitudes 

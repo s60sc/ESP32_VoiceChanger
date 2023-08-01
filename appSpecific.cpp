@@ -1,15 +1,48 @@
-// voiceChanger specific config functions
+// voiceChanger specific functions
 //
 // s60sc 2022
 
 #include "appGlobals.h"
+
+static void doDownload(httpd_req_t* req) {
+  // download recording to browser, applying current filters
+  if (psramFound()) {
+    size_t downloadBytes = buildWavHeader();
+    if (downloadBytes) {
+      setupFilters();
+      httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+      httpd_resp_set_type(req, "application/octet");
+      httpd_resp_set_hdr(req, "Content-Disposition", "attachment; filename=VoiceChanger.wav");
+      char contentLength[10];
+      sprintf(contentLength, "%i", downloadBytes);
+      httpd_resp_set_hdr(req, "Content-Length", contentLength);
+      // use chunked encoding 
+      httpd_resp_send_chunk(req, (char*)recordBuffer, WAV_HDR_LEN);
+      size_t chunksize = 0, ramPtr = WAV_HDR_LEN;
+      do {
+        chunksize = std::min((size_t)DMA_BUFF_LEN, downloadBytes - ramPtr); 
+        memcpy(audBuffer, recordBuffer + ramPtr, chunksize);
+        applyFilters(getVolumeControl());
+        if (httpd_resp_send_chunk(req, (char*)audBuffer, chunksize) != ESP_OK) break;  
+        ramPtr += chunksize;
+      } while (chunksize != 0);
+  
+      httpd_resp_send_chunk(req, NULL, 0); // signal end of data
+      httpd_resp_send(req, NULL, 0);
+      LOG_INF("Downloaded recording, size: %0.1fkB", (float)(downloadBytes/1024.0));
+    }
+  } else LOG_WRN("PSRAM needed to record and play"); 
+}
+
+/************************ webServer callbacks *************************/
 
 bool updateAppStatus(const char* variable, const char* value) {
   // update vars from configs and browser input
   bool res = true;
   int intVal = atoi(value);
   float fltVal = atof(value);
-  if (!strcmp(variable, "RM")) RING_MOD = (bool)intVal;
+  if (!strcmp(variable, "custom")) return res;
+  else if (!strcmp(variable, "RM")) RING_MOD = (bool)intVal;
   else if (!strcmp(variable, "BP")) BAND_PASS = (bool)intVal;
   else if (!strcmp(variable, "HP")) HIGH_PASS = (bool)intVal;
   else if (!strcmp(variable, "LP")) LOW_PASS = (bool)intVal;
@@ -23,7 +56,7 @@ bool updateAppStatus(const char* variable, const char* value) {
   else if (!strcmp(variable, "HPcas")) HP_CAS = intVal;  
   else if (!strcmp(variable, "LPcas")) LP_CAS = intVal;                
   else if (!strcmp(variable, "SineFreq")) SW_FREQ = intVal;  
-  else if (!strcmp(variable, "SineAmp")) SW_AMP = intVal << 5;     
+  else if (!strcmp(variable, "SineAmp")) SW_AMP = intVal << 5;  
   else if (!strcmp(variable, "ClipFac")) CLIP_FACTOR = intVal;  
   else if (!strcmp(variable, "DecayFac")) DECAY_FACTOR = intVal;        
   else if (!strcmp(variable, "PreAmp")) PREAMP_GAIN = intVal;  
@@ -50,6 +83,7 @@ bool updateAppStatus(const char* variable, const char* value) {
   else if (!strcmp(variable, "HPqval")) HP_Q = fltVal;
   else if (!strcmp(variable, "LPqval")) LP_Q = fltVal;
   else if (!strcmp(variable, "PKqval")) PK_Q = fltVal;
+  else if (!strcmp(variable, "Pitch")) PITCH_SHIFT = fltVal;  
 
   // bool
   else if (!strcmp(variable, "Disable")) DISABLE = (bool)intVal;
@@ -116,30 +150,6 @@ void buildAppJsonString(bool filter) {
   *p = 0;
 }
 
-static void doDownload(httpd_req_t* req) {
-  // download recording to browser
-  if (psramFound()) {
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    httpd_resp_set_type(req, "application/octet");
-    httpd_resp_set_hdr(req, "Content-Disposition", "attachment; filename=VoiceChanger.wav");
-    size_t downloadBytes = buildWavHeader();
-    char contentLength[10];
-    sprintf(contentLength, "%i", downloadBytes);
-    httpd_resp_set_hdr(req, "Content-Length", contentLength);
-    // use chunked encoding 
-    size_t chunksize, ramPtr = 0;
-    do {
-      chunksize =  std::min(CHUNKSIZE, (int)(downloadBytes - ramPtr));  
-      if (httpd_resp_send_chunk(req, (char*)recordBuffer+ramPtr, chunksize) != ESP_OK) break;     
-      ramPtr += chunksize;
-    } while (chunksize != 0);
-    
-    httpd_resp_send_chunk(req, NULL, 0);
-    LOG_INF("Downloaded recording, size: %0.1fkB", (float)(downloadBytes/1024.0));
-  } else LOG_WRN("PSRAM needed to record and play");
-  httpd_resp_send(req, NULL, 0); 
-}
-
 esp_err_t webAppSpecificHandler(httpd_req_t* req, const char* variable, const char* value) {
   // request handling specific to VoiceChanger
   int intVal = atoi(value);
@@ -156,6 +166,6 @@ bool appDataFiles() {
   return true;
 }
 
-void OTAprereq() {} // dummy
+void doAppPing() {}
 
-void doAppPing() {} // dummy
+void OTAprereq() {}

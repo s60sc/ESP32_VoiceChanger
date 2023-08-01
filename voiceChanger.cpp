@@ -13,7 +13,6 @@
 // s60sc 2021, 2023
 
 #include "appGlobals.h"
-#include "esp_adc_cal.h"
 
 // I2S devices
 deviceType MIC_TYPE;
@@ -78,7 +77,7 @@ static int recordSize = 0;
 static const uint8_t sampleWidth = sizeof(int32_t); 
 static const uint8_t audWidth = sizeof(int16_t);
 static const size_t sampleBytes = DMA_BUFF_LEN * sampleWidth;
-static const size_t audBytes = DMA_BUFF_LEN * audWidth;
+const size_t audBytes = DMA_BUFF_LEN * audWidth;
 static int32_t sampleBuffer[sampleBytes]; // audio samples output buffer
 int16_t audBuffer[audBytes];
 static const char* deviceLabels[3] = {"I2S", "PDM", "ADC"};
@@ -161,33 +160,23 @@ void actionRequest(actionType doAction) {
 
 /*******************************************************/
 
-static inline uint16_t getAnalog() {
-  // get averaged analog pin value (12 bit)
-  uint32_t level = 0; 
-  if (sanalogPin > 0) {
-    for (int j = 0; j < ADC_SAMPLES; j++) level += analogRead(sanalogPin); 
-    level /= ADC_SAMPLES;
-  }
-  return level;
-}
-
 static inline uint8_t getBrightness() {
   // get required led output brightness (0 .. 7) from analog control if selected
   // else use web page setting
   static uint8_t saveBright = BRIGHTNESS;
   if (USE_POT && switchModePin > 0) {
     // use current pot setting if active, else use previous value
-    if (!digitalRead(switchModePin)) saveBright = (getAnalog() >> 9); // (0 .. 8)
+    if (!digitalRead(switchModePin)) saveBright = (smoothAnalog(sanalogPin) >> 9); // (0 .. 8)
     return saveBright;
   } else return BRIGHTNESS; // use web value
 }
 
-static inline int8_t getVolumeControl() {
+int8_t getVolumeControl() {
   // determine required volume setting (relative to current)
   static int8_t saveVol = 1;
   if (USE_POT && switchModePin > 0) {
     // update saveVol if pot switched to volume control
-    if (digitalRead(switchModePin)) saveVol = (getAnalog() >> 8); // 0 .. 15, as analog is 12 bits
+    if (digitalRead(switchModePin)) saveVol = (smoothAnalog(sanalogPin) >> 8); // 0 .. 15, as analog is 12 bits
   } else saveVol = AMP_VOL * 2; // use web page setting
   if (saveVol == 0) return 0; // turn off volume
   // // increase or reduce volume, 6 is unity eg midpoint of pot / web slider
@@ -202,30 +191,34 @@ static esp_err_t setupMic() {
   i2s_mic_pins.data_in_num = amicSdIo;
   i2s_mic_pins.data_out_num = I2S_PIN_NO_CHANGE;
   
-  switch (MIC_TYPE) {
-    case I2S_TYPE:
-      // Setup I2S microphone config & pins
-    break;
-    case PDM_TYPE:
-      // Setup PDM microphone config & pins
-      i2sMode |= I2S_MODE_PDM;
-      i2s_mic_pins.bck_io_num = I2S_PIN_NO_CHANGE;
-    break;
-    case ADC_TYPE:
-      // Setup ADC microphone config & pins
-#ifdef CONFIG_IDF_TARGET_ESP32
-      i2sMode |= I2S_MODE_ADC_BUILT_IN;
-#else
-      LOG_WRN("Analog not supported");
-      return ESP_FAIL;
-#endif
-    break;
+  if (amicWsIo == amicSdIo) LOG_WRN("Microphone pins not defined");
+  else {
+    switch (MIC_TYPE) {
+      case I2S_TYPE:
+        // Setup I2S microphone config & pins
+      break;
+      case PDM_TYPE:
+        // Setup PDM microphone config & pins
+        i2sMode |= I2S_MODE_PDM;
+        i2s_mic_pins.bck_io_num = I2S_PIN_NO_CHANGE;
+      break;
+      case ADC_TYPE:
+        // Setup ADC microphone config & pins
+  #ifdef CONFIG_IDF_TARGET_ESP32
+        i2sMode |= I2S_MODE_ADC_BUILT_IN;
+  #else
+        LOG_WRN("Analog not supported");
+        return ESP_FAIL;
+  #endif
+      break;
+    }
+    i2s_mic_config.mode = (i2s_mode_t)i2sMode;
+    // set required sample rate
+    i2s_mic_config.sample_rate = SAMPLE_RATE;
+    LOG_INF("Setup %s microphone", deviceLabels[MIC_TYPE]);
+    return ESP_OK;
   }
-  i2s_mic_config.mode = (i2s_mode_t)i2sMode;
-  // set required sample rate
-  i2s_mic_config.sample_rate = SAMPLE_RATE;
-  LOG_INF("Setup %s microphone", deviceLabels[MIC_TYPE]);
-  return ESP_OK;
+  return ESP_FAIL;
 }
 
 static esp_err_t setupAmp() {
@@ -235,28 +228,32 @@ static esp_err_t setupAmp() {
   i2s_amp_pins.ws_io_num = ampWsIo;
   i2s_amp_pins.data_out_num = ampSdIo;
   i2s_amp_pins.data_in_num = I2S_PIN_NO_CHANGE;
-    
-  switch (AMP_TYPE) {
-    case PDM_TYPE:
-      // Setup PDM amp config
-      i2sMode |= I2S_MODE_PDM;
-    break;
-    case ADC_TYPE:
-      // Setup ADC amp config
-#ifdef CONFIG_IDF_TARGET_ESP32
-      i2sMode |= I2S_MODE_DAC_BUILT_IN;
-#else
-      LOG_WRN("Analog not supported");
-      return ESP_FAIL;
-#endif
-    break;
-    default: // ignore
-    break;    
+
+  if (ampSdIo == ampWsIo) LOG_WRN("Amplifier pins not defined");
+  else {
+    switch (AMP_TYPE) {
+      case PDM_TYPE:
+        // Setup PDM amp config
+        i2sMode |= I2S_MODE_PDM;
+      break;
+      case ADC_TYPE:
+        // Setup ADC amp config
+  #ifdef CONFIG_IDF_TARGET_ESP32
+        i2sMode |= I2S_MODE_DAC_BUILT_IN;
+  #else
+        LOG_WRN("Analog not supported");
+        return ESP_FAIL;
+  #endif
+      break;
+      default: // ignore
+      break;    
+    }
+    i2s_amp_config.sample_rate = SAMPLE_RATE;
+    i2s_amp_config.mode = (i2s_mode_t)i2sMode;  
+    LOG_INF("Setup %s amplifier", deviceLabels[AMP_TYPE]);       
+    return ESP_OK; 
   }
-  i2s_amp_config.sample_rate = SAMPLE_RATE;
-  i2s_amp_config.mode = (i2s_mode_t)i2sMode;  
-  LOG_INF("Setup %s amplifier", deviceLabels[AMP_TYPE]);       
-  return ESP_OK;          
+  return ESP_FAIL;         
 }
 
 static esp_err_t startupMic() {
@@ -393,23 +390,28 @@ size_t buildWavHeader() {
   return recordBytesUsed;
 }
 
-esp_err_t restartDevices() {
+esp_err_t restartDevices(bool initDevices) {
   // setup peripherals, depending on what is being connected
   // start / restart peripherals after configuration changed from web
+  if (initDevices) {
 #ifdef CONFIG_IDF_TARGET_ESP32
-  i2s_adc_disable(I2S_NUM_0);
-  i2s_adc_disable(I2S_NUM_1);
+    i2s_adc_disable(I2S_NUM_0);
+    i2s_adc_disable(I2S_NUM_1);
 #endif
-  i2s_driver_uninstall(I2S_NUM_0);
-  i2s_driver_uninstall(I2S_NUM_1);
+    i2s_driver_uninstall(I2S_NUM_0);
+    i2s_driver_uninstall(I2S_NUM_1);
+  }
   if ((I2S_AMP_PORT == I2S_NUM_1 && AMP_TYPE != I2S_TYPE) 
     || (I2S_MIC_PORT == I2S_NUM_1 && MIC_TYPE != I2S_TYPE))
-    LOG_ERR("I2S device support only on I2S_NUM_1");
+    LOG_ERR("Only I2S device supported on I2S_NUM_1");
   else {
     esp_err_t restartOK = setupMic(); 
-    if (restartOK == ESP_OK) restartOK = setupAmp();
     if (restartOK == ESP_OK) restartOK = startupMic();
-    if (restartOK == ESP_OK) restartOK = startupAmp();  
+    if (restartOK == ESP_OK) {
+      restartOK = setupAmp();
+      if (restartOK == ESP_OK) startupAmp();  
+      restartOK = ESP_OK; // allow mic without amp
+    }
     return restartOK;
   }
   return ESP_FAIL;
@@ -418,7 +420,7 @@ esp_err_t restartDevices() {
 static void actionTask(void* parameter) {
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    if (restartDevices() == ESP_OK) {
+    if (restartDevices(true) == ESP_OK) {
       setupFilters();
       switch (THIS_ACTION) {
         case RECORD_ACTION: 
@@ -457,6 +459,7 @@ static void setupAudioLed() {
 
 void setupVC() {
   setupAudioLed();
+  setupADC();
   LOG_INF("I2S preparation");
   if (psramFound()) recordBuffer = (uint8_t*)ps_malloc(psramMax);
   else LOG_WRN("No PSRAM available");
@@ -478,7 +481,8 @@ void setupVC() {
     attachInterrupt(digitalPinToInterrupt(buttonStopPin), stopISR, FALLING);
   }
   if (switchModePin > 0) pinMode(switchModePin, INPUT_PULLUP);
-  
+
+  restartDevices(false); // report on device status
   actionSemaphore = xSemaphoreCreateBinary();
   xTaskCreate(&actionTask, "actionTask", 4096, NULL, 6, &actionHandle);
   xSemaphoreGive(actionSemaphore);

@@ -6,7 +6,7 @@ Can be hosted on a ESP32 or ESP32-S3.
 
 ## Installation
 
-Download github files into the Arduino IDE sketch folder, removing `-master` from the application folder name.
+Download github files into the Arduino IDE sketch folder, removing `-main` from the application folder name.
 Compile with PSRAM enabled if available, and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
@@ -24,7 +24,7 @@ A potentiometer can also be connected to control amplifier volume and LED bright
 To enable recording the ESP32 needs to host PSRAM.
 
 The types of microphone and amplifier that can be connected are combinations of Analog, PDM, and I2S. 
-At least one device must be I2S as the ESP32 only supports PDM and Analog on one I2S peripheral. Analog microphones are low quality.
+At least one device must be I2S as the ESP32 only supports PDM and Analog on one I2S peripheral. Analog microphones are low quality and should be avoided.
 Cheap I2S devices that have been successfully tested with this app are:
 * INMP441 I2S microphone
 * MAX98357A I2S 3W amplifier
@@ -53,6 +53,7 @@ Voice changing is achieved by applying software filters:
 * Ring modulator: use sinewave to create a dalek style voice 
 * Clipping: reduce higher amplitudes depending on clippping hardness factor
 * Reverb: add reverberation, depending on decay factor
+* Pitch Shift: change pitch up or down without affecting speed. This is resource intensive so wont work in real time, only on recordings.
 
 Biquad filters can also be cascaded to accentuate a particular effect. For more detail on biquad filters see eg. https://arachnoid.com/BiQuadDesigner/index.html
 
@@ -63,7 +64,7 @@ Control buttons:
 * Record: save microphone input to PSRAM (up to 60 secs (ESP32) / 180 secs (ESP32S3) at 16kHz) without filtering, but with Preamp Gain applied
 * Play: play recording currently in PSRAM using current filter settings
 * Stop: stop current activity
-* Output: download current recording using current filtering to browser as file named `VoiceChanger.wav` 
+* Download: download to browser the current recording using the current filtering as a file named `VoiceChanger.wav` 
 * PassThru: microphone input filtered and output to speaker directly
 
 As the recorded data is not filtered it can be replayed with different filter configurations to find the best filter combination and settings.

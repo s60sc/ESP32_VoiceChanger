@@ -1,4 +1,4 @@
-// Global TuyaDevice declarations
+// Global VoiceChanger declarations
 //
 // s60sc 2022
 
@@ -19,55 +19,54 @@
 #define I2S_DAC_CHANNEL I2S_DAC_CHANNEL_RIGHT_EN // GPIO25 (J5+ pin)
 #endif
 
-/********************* fixed defines leave as is *******************/ 
+#define ALLOW_SPACES false // set true to allow whitespace in configs.txt key values
+
+// web server ports
+#define WEB_PORT 80 // app control
+#define OTA_PORT (WEB_PORT + 1) // OTA update
+
+/*********************** Fixed defines leave as is ***********************/ 
 /** Do not change anything below here unless you know what you are doing **/    
 
-//#define DEV_ONLY // leave commented out
+#define DEV_ONLY // leave commented out
 #define STATIC_IP_OCTAL "152" // dev only
 #define CHECK_MEM false // leave as false
-#define FLUSH_DELAY 0 // for debugging crashes
+#define FLUSH_DELAY 200 // for debugging crashes
  
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.2.1"
+#define APP_VER "1.2.2"
 
 #define MAX_CLIENTS 3 // allowing too many concurrent web clients can cause errors
-#define DATA_DIR "/data"
-#define HTML_EXT ".htm"
-#define TEXT_EXT ".txt"
-#define JS_EXT ".js"
-#define CSS_EXT ".css"
-#define ICO_EXT ".ico"
-#define SVG_EXT ".svg"
 #define INDEX_PAGE_PATH DATA_DIR "/VC" HTML_EXT
-#define CONFIG_FILE_PATH DATA_DIR "/configs" TEXT_EXT
-#define LOG_FILE_PATH DATA_DIR "/log" TEXT_EXT
-#define OTA_FILE_PATH DATA_DIR "/OTA" HTML_EXT
 #define FILE_NAME_LEN 64
-#define ONEMEG (1024 * 1024)
-#define MAX_PWD_LEN 64
 #define JSON_BUFF_LEN (2 * 1024) // set big enough to hold json string
 #define MAX_CONFIGS 75 // > number of entries in configs.txt
 #define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/master"
 
-#define FILE_EXT "wav"
-#define DMA_BUFF_LEN 1024 // used for I2S buffer size
-#define WAV_HDR_LEN 44
-#define ADC_SAMPLES 4
-#define DMA_BUFF_CNT 4
-#define REVERB_SAMPLES 1600
-
-#define FILLSTAR "****************************************************************"
-#define DELIM '~'
-#define STORAGE LittleFS // one of: LittleFS SD_MMC 
+#define STORAGE LittleFS // One of LittleFS or SD_MMC 
 #define RAMSIZE (1024 * 8) 
 #define CHUNKSIZE (1024 * 4)
+#define RAM_LOG_LEN 5000 // size of ram stored system message log in bytes
 //#define INCLUDE_FTP 
 //#define INCLUDE_SMTP
 //#define INCLUDE_SD
+//#define INCLUDE_MQTT
 
+#define IS_IO_EXTENDER false // must be false except for IO_Extender
 #define EXTPIN 100
-#define IS_IO_EXTENDER false // must be false unless IO_Extender
-                                                    
+
+// to determine if newer data files need to be loaded
+#define HTM_VER "1"
+#define JS_VER "0"
+#define CFG_VER "1"
+
+#define FILE_EXT "wav"
+#define DMA_BUFF_LEN 1024 // used for I2S buffer size
+#define WAV_HDR_LEN 44
+#define DMA_BUFF_CNT 4
+#define REVERB_SAMPLES 1600
+#define OSAMP 4 // 4 for moderate quality, 32 for best quality
+
 
 /******************** Function declarations *******************/
 
@@ -78,10 +77,13 @@ enum actionType {NO_ACTION, UPDATE_CONFIG, RECORD_ACTION, PLAY_ACTION, PASS_ACTI
 void actionRequest(actionType doAction);
 void applyFilters(int8_t volume);
 size_t buildWavHeader();
+int8_t getVolumeControl();
 void outputRec();
 void setupFilters();
 void setupVC();
 void setupWeb();
+void smbPitchShiftInit(float _pitchShift, long _fftFrameSize, long _osamp, float sampleRate);
+void smbPitchShift(size_t numSampsToProcess, int16_t *indata, int16_t *outdata);
 void updateVars(const char* jsonKey, const char* jsonVal); 
 
 /******************** Global app declarations *******************/
@@ -132,6 +134,7 @@ extern int SW_FREQ;    // frequency of generated sine wave
 extern uint8_t SW_AMP;    // amplitude of generated sine wave
 extern int CLIP_FACTOR; // factor used to compress high volume
 extern int DECAY_FACTOR; // factor used control reverb decay
+extern float PITCH_SHIFT; // factor used shift pitch up or down
 
 // other web settings
 extern uint8_t PREAMP_GAIN; // microphone preamplification factor
@@ -143,6 +146,7 @@ extern bool DISABLE; // temporarily disable filter settings on browser
 extern bool USE_POT; // whether external volume control potentiometer being used
 extern uint16_t SAMPLE_RATE; // audio rate in Hz
 extern int16_t audBuffer[]; // audio samples output buffer
+extern const size_t audBytes;
 extern uint8_t* recordBuffer; // store recording
 extern volatile actionType THIS_ACTION;
 
