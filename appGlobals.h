@@ -1,6 +1,6 @@
 // Global VoiceChanger declarations
 //
-// s60sc 2022
+// s60sc 2022 
 
 #pragma once
 #include "globals.h"
