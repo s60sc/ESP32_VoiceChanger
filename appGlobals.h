@@ -41,7 +41,7 @@
 #define FILE_NAME_LEN 64
 #define JSON_BUFF_LEN (2 * 1024) // set big enough to hold json string
 #define MAX_CONFIGS 75 // > number of entries in configs.txt
-#define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/master"
+#define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/main"
 
 #define STORAGE LittleFS // One of LittleFS or SD_MMC 
 #define RAMSIZE (1024 * 8) 
