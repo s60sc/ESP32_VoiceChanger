@@ -43,7 +43,12 @@
         --headingSize: calc(var(--bodySize) * 1.25);
         --subheadingSize: var(--bodySize);
         --footerSize: calc(var(--bodySize) * 0.7);
+        --smallThumbSize: 1rem; /* must be specific value, not calc */
+        --bigThumbSize: 2rem; /* must be specific value, not calc */
+        --markerSize: 1rem; /* must be specific value, not calc */
       }
+      
+      html body {height: 100%;}
       
       body {
         font-family: Helvetica  !important;
@@ -125,6 +130,13 @@
 
      .grid-cols3 {
         grid-template-columns: calc(var(--buttonSize) * 14) calc(var(--buttonSize) * 12) calc(var(--buttonSize) * 12);
+      }
+      
+      .grid-cols4 {
+        grid-template-columns: calc(var(--buttonSize) * 10) calc(var(--buttonSize) * 10) calc(var(--buttonSize) * 10) calc(var(--buttonSize) * 10)
+      }
+      
+     .grid-cols3, .grid-cols4 {
         display: grid;
         background: none;
         text-align: center;
@@ -226,7 +238,7 @@
         flex-grow: 1
       }
 
-      input, #applog, #ramlog {
+      input, #appLog {
         font: var(--inputSize) 'Courier New';
         font-weight:bold;
         color: var(--inputText);
@@ -264,59 +276,10 @@
       } 
       
       input[type=number]::-webkit-inner-spin-button {
-        opacity: 1
+        opacity: 1;
       }
       
-
-      /* checkbox toggle switch slider */
-            
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: calc(var(--buttonSize) * 2);
-        height: var(--buttonSize);
-        top: var(--buttonHalf);
-      }
-
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .slider {
-        position: absolute;
-        border-radius: var(--buttonSize);
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--itemInactive);
-        width: calc(var(--buttonSize) * 3);
-        transition: .4s;
-      }
-
-      .slider:before {
-        position: absolute;
-        border-radius: 50%;
-        content: "";
-        height: var(--buttonSize);
-        width: var(--buttonSize);
-        left: var(--buttonQuart);
-        background: var(--inputBackground);
-        transition: .4s;
-      }
-
-      input:checked + .slider {
-        background-color: var(--buttonActive);
-      }
-
-      input:checked + .slider:before {
-        transform: translateX(calc(var(--buttonSize)*1.5));
-      }
-      
-      #applog, #ramlog {
+      #appLog {
         height:50vh;
         width:90%;
         border:2px solid var(--itemBorder);
@@ -389,65 +352,99 @@
       
       
       /*** range slider ***/
-
+      
       .input-group>input[type=range]  {
-        min-width: calc(var(--buttonSize) * 7);  
+        min-width: calc(var(--markerSize) * 8);  
       }
-
+      
       input[type=range] {
         -webkit-appearance: none;
-        font-size: var(--buttonSize);
-        width: 100%;
-        height: var(--buttonHalf);
-        background: var(--menuBackground);
-        cursor: pointer;
-        margin-top: calc(var(--buttonSize) * 3/4);
-      }
-
-      input[type=range]:focus {
-        outline: 0
+        background: transparent;
       }
 
       input[type=range]::-webkit-slider-runnable-track {
+        -webkit-appearance: none;
         width: 100%;
         height: 2px;
-        cursor: pointer;
-        background: var(--inputBackground);
-        border-radius: var(--buttonHalf);
+        background: var(--inputBackground); 
+        margin-top: 2px;
       }
 
       input[type=range]::-webkit-slider-thumb {
-        height: var(--buttonSize);
-        width: var(--buttonSize);
+        /* location of thumb relative to track */
+        height: var(--smallThumbSize);
+        width: var(--smallThumbSize);
         border-radius: 50%;
         background: var(--buttonReady); 
-        cursor: pointer;
         -webkit-appearance: none;
-        margin-top: calc(-1 * var(--buttonHalf));
+        margin-top: calc(-0.5 * var(--smallThumbSize));
       }
-      input[type=range]:focus::-webkit-slider-runnable-track {
-        background: var(--inputBackground);
+      input[type=range].bigThumb::-webkit-slider-thumb{
+        height: var(--bigThumbSize);
+        width: var(--bigThumbSize);
+        margin-top: calc(-0.5 * var(--bigThumbSize));
       }
-  
+
       div[name="rangeVal"] {
-        width: var(--buttonDbl);
-        height: var(--buttonSize);
-        line-height: 150%;
+        /* shape & location of marker relative to thumb */
+        width: calc(var(--markerSize) * 2);
+        height: var(--markerSize);
+        margin-top: calc(-0.5 * var(--smallThumbSize));
+        line-height: var(--markerSize);
         text-align: center;
         background: var(--buttonReady); 
         color: var(--buttonText); 
         font-size: var(--footerSize);
-        display: block;
+        display: inline;
         position: absolute;
-        left: 50%;
-        transform: translate(-50%, 0);
         border-radius: 25%;
-        top: -25%; 
+        pointer-events: none;
+      }
+      div[name="rangeVal"].rvThumb {
+        margin-top: calc(-0.5 * var(--bigThumbSize) - var(--buttonQuart));
       }
 
-       div[name="rangeMin"], div[name="rangeMax"] {
+      div[name="rangeMin"], div[name="rangeMax"] {
         display: inline-block;
         padding: 0 var(--buttonQuart);
+        pointer-events: none;
+      }
+       
+
+      /* checkbox slider */
+
+      /* Hide the default checkbox */
+      .switch input[type="checkbox"] {
+        display: none;
+      }
+
+      /* static part */
+      .switch .slider {
+        width: calc(var(--buttonSize) * 3);  
+        height: var(--buttonSize);
+        top: calc(var(--buttonQuart) / 2);
+        background: var(--itemInactive);
+        position: relative;
+        display: inline-block;
+        border-radius: var(--buttonSize);
+      }
+      .switch input[type="checkbox"]:checked + .slider {
+        background-color: var(--buttonActive);
+      }
+
+      /* moving part */
+      .switch .slider::before {
+        content: "";
+        height: var(--buttonSize);
+        width: var(--buttonSize);
+        background: var(--inputBackground);
+        position: absolute;
+        left: var(--buttonQuart);
+        border-radius: var(--buttonSize);
+        transition: transform 0.4s;
+      }
+      .switch input[type="checkbox"]:checked + .slider::before {
+        transform: translateX(calc(var(--buttonSize)*1.5));
       }
       
       
@@ -477,6 +474,16 @@
         color: var(--inputText);
       }
       
+      .blinking {
+        animation: blinker 1.5s linear infinite;
+      }
+
+      @keyframes blinker {
+        50% {
+          opacity: .4;
+        }
+      }
+      
       fieldset {
         margin-bottom: var(--inputSize);
       }
@@ -490,7 +497,7 @@
         <button class="tablinks active" name="VoiceChanger" id="mainTab">VoiceChanger</button>
         <button class="tablinks" name="ShowLog">Show Log</button>
         <button class="tablinks" name="EditConfig">Edit Config</button>
-        <button class="tablinks" name="OTAUpload">OTA Upload</button>
+        <a href="/web?OTA.htm"><button class="tablinks">OTA Upload</button></a>
       </ul>
     </div>
     <div id="VoiceChanger" class="tabcontent" style="display:block">
@@ -500,15 +507,15 @@
           <td>
            <button id="save" class="control-action" value="1">Save</button>
          </td><td>
-           <button id="record" class="control-action" value="2">Record</button>
+           <button id="record" class="control-action" name="Record" value="2">Record</button>
          </td><td>
-           <button id="play" class="control-action" value="3">Play</button>
+           <button id="play" class="control-action" name="Play" value="3">Play</button>
          </td><td>
-           <button id="stop" class="control-action" value="6">Stop</button>
+           <button id="micRem" class="control-action" name="PC Mic" value="0">PC Mic</button>
          </td><td>
            <button id="output" class="download-action" value="5">Download</button>
          </td><td>
-           <button id="passthru" class="control-action" value="4">PassThru</button>
+           <button id="passthru" class="control-action" name="PassThru" value="4">PassThru</button>
          </td>
         </tr>
       </table>
@@ -725,16 +732,16 @@
             <input title="Set Pitch Shift factor" type="range" id="Pitch" min="0.5" max="2" step="0.1" value="1">
           </div>
           <div class="input-group">
-            <label for="PreAmp">Preamp Gain:</label>
-            <input title="Set microphone preamp gain level" type="range" id="PreAmp" min="0" max="7" value="4">
+            <label for="micGain">Mic Gain:</label>
+            <input title="Set microphone preamp gain level" type="range" id="micGain" min="0" max="7" value="3">
           </div>
           <div class="input-group">
-            <label for="AmpVol">Volume:</label>
-            <input title="Set ampifier volume level" type="range" id="AmpVol" min="0" max="7" value="4">
+            <label for="ampVol">Amp Volume:</label>
+            <input title="Set ampifier volume level" type="range" id="ampVol" min="0" max="7" value="3">
           </div>
           <div class="input-group">
             <label for="Bright">Brightness:</label>
-            <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="4">
+            <input title="Set audio led brightness level" type="range" id="Bright" min="0" max="7" value="3">
           </div>
          </td></tr>
          <tr><td>  
@@ -761,16 +768,14 @@
            <legend>Device Type</legend> 
              <div>
               <span style="display: inline-block; width: calc(var(--buttonSize) * 7); margin-top:var(--buttonSize)">Microphone</span>
-              <input type="radio" name="mType" value="0" checked>I2S 
-              <input type="radio" name="mType" value="1">PDM
-              <input type="radio" name="mType" value="2">ADC
+              <input type="radio" name="mType" value="1" checked>I2S 
+              <input type="radio" name="mType" value="0">PDM
             </div>
             <br>
             <div>
               <span style="display: inline-block; width: calc(var(--buttonSize) * 7)">Amplifier:</span>
-              <input type="radio" name="aType" value="0" checked>I2S 
-              <input type="radio" name="aType" value="1">PDM
-              <input type="radio" name="aType" value="2">DAC
+              <input type="radio" name="aType" value="1" checked>I2S 
+              <input type="radio" name="aType" value="0">DAC
              </div>
            </fieldset>
          </td></tr>
@@ -813,49 +818,55 @@
      
      <div id="ShowLog" class="tabcontent">
       <br>
-      <div class="grid-cols3">
-        <div class="input-group">
-          <label for="wsMode" class="header" title="Enable logging to websocket">Logging:</label>
-          <div class="switch">
-            <input class="local" id="wsMode" type="checkbox">
-            <label title="Output log to WS" class="slider" for="wsMode"></label>
-          </div>   
+      <div class="grid-cols4">
+        <div class="input-group" style="grid-column: span 2">
+          <fieldset> 
+          <legend id="selectLog">Select Log</legend> 
+          <div>
+            <label title="Display RTC RAM log" for="rtcram">RTC RAM</label>
+            <input class="local" id="rtcram" type="radio" name="logType" value="0" checked>
+            <label title="Display Websocket log" for="websock">&nbsp;Websocket</label>
+            <input class="local" id="websock" type="radio" name="logType" value="1">
+          </div>
+          </fieldset>
         </div>
-        <div>
-          <svg>
-            <rect/>
-            <text id="clearWSlog" class="midText">Clear Log</text>
-          </svg>
-        </div>
-        <div class="input-group" id="dbg-group" style="text-align: left">
+        <div class="input-group" id="dbg-group" style="align-items: center; grid-column: span 2">
           <label for="dbgVerbose" class="header" title="Set verbose logging">Verbose:</label>
           <div class="switch">
             <input id="dbgVerbose" type="checkbox">
             <label title="Outputs additional information to log" class="slider" for="dbgVerbose"></label>
           </div>
         </div>
-      </div>
-      <br>
-      <div id="applog"></div>
-      <br><br>
-      <div class="grid-cols3">
+        <div style="grid-column: span 4"><br></div>
         <div>
           <svg>
             <rect/>
-            <text class="midText" id="refreshRAMlog">Display RAM Log</text>
+            <text class="local" id="refreshLog">Refresh Log</text>
           </svg>
         </div>
         <div>
           <svg>
             <rect/>
-            <text class="midText" id="clearRAMlog">Clear RAM Log</text>
+            <text class="local" id="clearLog">Clear Log</text>
+          </svg>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="save" class="midText">Save</text>
+          </svg>
+        </div>
+        <div>
+          <svg>
+            <rect/>
+            <text id="reset" class="midText">Reboot ESP</text>
           </svg>
         </div>
       </div>
       <br>
-      <div id="ramlog"></div>
+      <div id="appLog"></div>
+      <br>
     </div>
-    <br>
     
     <div id="EditConfig" class="tabcontent">
       <br>
@@ -905,17 +916,6 @@
       </div>
     </div>
            
-    <div id="OTAUpload" class="tabcontent">
-      <br><br>
-      <form id="upload_form" enctype="multipart/form-data" method="post">
-        <input class="local" type="file" name="otafile" id="otafile">
-        <br><br>
-        <progress id="progressOta" value="0" max="100" ></progress>%
-        <div class="subheader" id="status"></div>
-        <p id="loaded_n_total"></p>
-      </form>
-    </div>
-    
     <div class="alertMsg">
       <span id="alertText"></span>
     </div>
@@ -923,11 +923,10 @@
     <script>
       'use strict'
       
-      // web server ports, automatically derive from entered port number
-      const webPort = !window.location.port ? "80" : window.location.port;
-      const otaPort = String(+webPort + 1);
-      
       let refreshInterval = 30000; 
+      let appClock = Math.ceil(Date.now() / 1000);
+      const appLogInit = 0;
+      const appHub = '/control?svg=1';
 
       function processStatus(dest, key, value, fromUser = true) {
         // process change to status value
@@ -938,16 +937,18 @@
             document.title = value;
             if (fromUser) sendControl(key, value);
           }
-          else if (key == "otafile") otaUploadFile();
           else if (key == "alertMsg") showAlert(value);
-          else if (key == "clearWSlog") $('#applog').innerHTML = "";
-          else if (key == "clearRAMlog") clearRAMlog();
-          else if (key == "refreshRAMlog") getRAMlog();
+          else if (key == "clearLog") clearLog();
+          else if (key == "refreshLog") getLog();
+          else if (key == "logType") { logType = value; sendControl(key, value); return; }
           else if (key == "reset") saveChanges();
-          else if (key == "wsMode") value == 1 ? initWebSocket() : closeWS();
           else if (key == "refreshVal") refreshInterval = value * 1000; 
-          else if (key == "clockUTC") checkTime(value);
+          else if (key == "clockUTC") { appClock = value; checkTime(value); }
           else if (key == "pinout") getConfig("01");
+          else if (key == "micRem") micAction(true);
+          else if (key == "play" || key == "passthru" || key == "record") buttonAction(key, value);
+          else if (key == "stopPlay") deactivateButton($('#play'));
+          else if (key == "stopRec") deactivateButton($('#record'));
           else if (key == "Srate") setMaxFreq(fromUser); 
           else if (isDefined($('#'+key)) && $('#'+key).classList.contains("control-action")) sendControl('action', value);
           else if (isDefined($('#'+key)) && $('#'+key).classList.contains("download-action")) window.location.href='/control?action=5'
@@ -976,6 +977,7 @@
       function setMaxFreq(fromUser = false) {
         // change frequency max limits and initial values 
         const srate = $('input[name="Srate"]:checked').value;
+        outSampleRate = srate;
         $$('input[type="range"].freq').forEach(el => { 
           el.max = srate / 2;
           el.parentElement.children.rangeMax.innerHTML = srate / 2;
@@ -985,10 +987,58 @@
         if (fromUser) sendControl("Srate", srate); 
       }
       
+      function activateButton(thisButton) {
+        thisButton.classList.add("active");
+        thisButton.classList.add('blinking');
+        thisButton.innerHTML = "Stop " + thisButton.getAttribute('name');
+      }
+      
+      function deactivateButton(thisButton) {
+        thisButton.classList.remove("active");
+        thisButton.classList.remove('blinking');
+        thisButton.innerHTML = thisButton.getAttribute('name');
+      }
+      
+      async function micAction(changeState) {
+        sendControl('action', '6');
+        const thisButton = $('#micRem');
+        deactivateAllButtons();
+        if (changeState) {
+          const micActive = !isActive(thisButton);
+          micActive ? activateButton(thisButton) : deactivateButton(thisButton);
+          await sleep(200);
+          micRemState(micActive);
+          sendControl("micRem", micActive ? '1' : '0');
+        } else {
+          deactivateButton(thisButton);
+          sendControl("micRem", '0');
+        }
+      }
+      
+      function deactivateAllButtons() {
+        if (isActive($('#play'))) deactivateButton($('#play'));
+        if (isActive($('#record'))) deactivateButton($('#record'));
+        if (isActive($('#passthru'))) deactivateButton($('#passthru'));
+      }
+      
+      async function buttonAction(key, value) {
+        sendControl('action', '6');
+        const thisButton = $('#'+key);
+        const buttonActive = !isActive(thisButton);
+        deactivateAllButtons();
+        if (buttonActive) {
+          await sleep(200);
+          activateButton(thisButton);
+          sendControl('action', value);
+        }
+      }
+      
       function customInit() {
         setMaxFreq();
       }
       
+      function closedTab(isClosed) {}
+
       function configStatus(refresh) {
         if (!refresh) loadStatus("");
       }
@@ -997,7 +1047,7 @@
       
       // common script config
       const doCustomInit = true;
-      const doInitWebSocket = false;
+      const doInitWebSocket = true;
       const doLoadStatus = false;
       const doRefreshTimer = false;
       const doCustomSync = false;
@@ -1013,7 +1063,7 @@
       window.addEventListener('load', function() {
         initialise();
       });
-               
+
     </script>
   </body>
 </html>
