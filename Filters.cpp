@@ -102,7 +102,7 @@ static inline void initBiquad(int ftype, float freq, float Qval, float gain, int
 void setupFilters() {
   calcQvals();
   filtIdx = 0;
-  long framesize = audBytes / sizeof(int16_t);
+  long framesize = sampleBytes / sizeof(int16_t);
   if (RING_MOD) generateSineWave(SW_FREQ, SW_AMP);
   if (BAND_PASS) initBiquad(bq_type_bandpass, BP_FREQ, BP_Q, 0, BP_CAS);
   if (HIGH_PASS) initBiquad(bq_type_highpass, HP_FREQ, HP_Q, 0, HP_CAS);
@@ -113,20 +113,20 @@ void setupFilters() {
   if (PITCH_SHIFT != 1.0) smbPitchShiftInit(PITCH_SHIFT, framesize, OSAMP, SAMPLE_RATE);
 }
 
-void applyFilters(int8_t volume) { 
+void applyFilters() { 
   if (!DISABLE) {
     // modify input signal using required filters
     for (int k = 0; k < filtIdx; k++) {
       // apply each required biquad filter in turn
       for (int i = 0; i < DMA_BUFF_LEN; i++)  
-        audBuffer[i] = (int16_t)filter[k]->process((float)audBuffer[i]); 
+        sampleBuffer[i] = (int16_t)filter[k]->process((float)sampleBuffer[i]); 
     }
   
     if (RING_MOD) {
       // output dalek style voice, by multiplying input value with sine wave value
       for (int i = 0; i < DMA_BUFF_LEN; i++) { 
-        int32_t thisSample = (int32_t)audBuffer[i] * sineWaveTable[i % dataPoints];
-        audBuffer[i] = (int16_t)(thisSample / SW_AMP); 
+        int32_t thisSample = (int32_t)sampleBuffer[i] * sineWaveTable[i % dataPoints];
+        sampleBuffer[i] = (int16_t)(thisSample / SW_AMP); 
       }
     }
     
@@ -135,20 +135,16 @@ void applyFilters(int8_t volume) {
       static int16_t reverbBuff[REVERB_SAMPLES] = {0};
       static size_t reverbPtr = 0;
       for (int i = 0; i < DMA_BUFF_LEN; i++) {
-        int16_t reverbed = audBuffer[i] + reverbBuff[reverbPtr] / (DECAY_FACTOR + 1);
-        audBuffer[i] = reverbBuff[reverbPtr] = reverbed;
+        int16_t reverbed = sampleBuffer[i] + reverbBuff[reverbPtr] / (DECAY_FACTOR + 1);
+        sampleBuffer[i] = reverbBuff[reverbPtr] = reverbed;
         reverbPtr = (reverbPtr + 1) % REVERB_SAMPLES;
       }
     }
   }
-  for (int i = 0; i < DMA_BUFF_LEN; i++) {   
-    // apply volume control 
-    audBuffer[i] = volume < 0 ? audBuffer[i] / abs(volume) : constrain((int32_t)audBuffer[i] * volume, SHRT_MIN, SHRT_MAX);
-    if (AMP_TYPE == ADC_TYPE) audBuffer[i] += 0x8000; // needs to be unsigned for DAC output
-  }
+  applyVolume();
 
   // change pitch if required, resource intensive
-  if (PITCH_SHIFT != 1.0) smbPitchShift(DMA_BUFF_LEN / sizeof(int16_t), audBuffer, audBuffer);
+  if (PITCH_SHIFT != 1.0) smbPitchShift(DMA_BUFF_LEN / sizeof(int16_t), sampleBuffer, sampleBuffer);
 
   if (!DISABLE) {
     // clip higher amplitudes 
@@ -156,9 +152,9 @@ void applyFilters(int8_t volume) {
       // clip factor: 1 = soft clip, 10 = hard clip
       float clipFactor = 1 + CLIP_FACTOR / 6.0;
       for (int i = 0; i < DMA_BUFF_LEN; i++) {
-        float inputF = (float)(audBuffer[i]) / SHRT_MAX;
+        float inputF = (float)(sampleBuffer[i]) / SHRT_MAX;
         float c = inputF * clipFactor;
-        audBuffer[i] = (int16_t)(SHRT_MAX * (1 / clipFactor * (c / (1.0 + 0.28 * (c * c)))));
+        sampleBuffer[i] = (int16_t)(SHRT_MAX * (1 / clipFactor * (c / (1.0 + 0.28 * (c * c)))));
       }
     }
   }

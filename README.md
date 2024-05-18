@@ -11,27 +11,26 @@ Compile with PSRAM enabled if available, and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
 
-On first installation, the application will start in wifi AP mode - connect to SSID: **VoiceChanger_...**, to allow router and password details to be entered via the web page on 192.168.4.1. The application web pages and configuration data file (except passwords) are stored in the **/data** folder which is automatically downloaded to flash from GitHub. The **/data** folder can also be loaded via OTA.
+On first installation, the application will start in wifi AP mode - connect to SSID: **ESP-CAM_MJPEG_...**, to allow router and password details to be entered via the web page on `192.168.4.1`. The configuration data file (except passwords) is automatically created, and the application web pages automatically downloaded from GitHub to the SD card **/data** folder when an internet connection is available.
 
-Subsequent updates to the application, or to the **/data** folder contents, can be made using the **OTA Upload** tab. The **/data** folder can also be reloaded from GitHub using the **Reload /data** button on the **Edit Config** tab.
+Subsequent updates to the application, or to the **/data** folder files, can be made using the **OTA Upload** tab. The **/data** folder can also be reloaded from GitHub using the **Reload /data** button on the **Edit Config** tab, or by using a WebDAV client.
 
 
 ## Hardware
 
-A microphone and amplifier with speaker needs to be connected to the ESP32. 
-Optionally LEDs can be connected that will flash according to the sound level.
+A microphone and amplifier with speaker needs to be connected to the ESP32, and / or a [remote microphone](#remote-microphone) can be used.
+Optionally LEDs and MY9221 based LED bars can be connected that will flash according to the sound level.
 A potentiometer can also be connected to control amplifier volume and LED brightness.
 To enable recording the ESP32 needs to host PSRAM.
 
-The types of microphone and amplifier that can be connected are combinations of Analog, PDM, and I2S. 
-At least one device must be I2S as the ESP32 only supports PDM and Analog on one I2S peripheral. Analog microphones are low quality and should be avoided.
+The types of microphone and amplifier that can be connected are combinations of I2S (mic & amp), PDM (mic) and Analog (amp).
+At least one device must be I2S as the ESP32 only supports PDM and Analog on one I2S peripheral. Analog microphones are not supported as low quality.
 Cheap I2S devices that have been successfully tested with this app are:
 * INMP441 I2S microphone
 * MAX98357A I2S 3W amplifier
 
 Other devices tested are:
 * MP34DT01 PDM microphone
-* MAX9814 ADC microphone
 * ICSK025A DAC 3W amplifier
 
 Analog devices are not supported by I2S on ESP32-S3.
@@ -61,18 +60,18 @@ Biquad filters can also be cascaded to accentuate a particular effect. For more 
 
 Control buttons:
 * Save: save current configuration to storage
-* Record: save microphone input to PSRAM (up to 60 secs (ESP32) / 180 secs (ESP32S3) at 16kHz) without filtering, but with Preamp Gain applied
-* Play: play recording currently in PSRAM using current filter settings
-* Stop: stop current activity
+* Record / Stop Record: save microphone input to PSRAM (up to 60 secs (ESP32) / 180 secs (ESP32S3) at 16kHz) without filtering, but with Preamp Gain applied
+* Play / Stop Play: play recording currently in PSRAM using current filter settings
+* PC Mic / Stop PC Mic: use browser [microphone](#remote-microphone)
 * Download: download to browser the current recording using the current filtering as a file named `VoiceChanger.wav` 
-* PassThru: microphone input filtered and output to speaker directly
+* PassThru / Stop PassThru: microphone input filtered and output to speaker directly
 
 As the recorded data is not filtered it can be replayed with different filter configurations to find the best filter combination and settings.
 
 Other settings:
 * Preamp Gain: microphone gain
 * Volume: amplifier volume level
-* Brightness: LED brightness level
+* Brightness: Maximum LED brightness level
 * Analog Control: if on, volume and brightness are controlled by potentiometer instead of web page
 * Disable: if on, disables current filter settings without changing them to hear original
 
@@ -109,6 +108,9 @@ Example configuration for dalek style voice:
   * **Pins**: Define pins used by microphone, amplifier, buttons.
 
 
+## Remote Microphone
+
+If a PC or phone has a built in microphone this can accessed from the browser and streamed to the ESP32. Due to Windows and browser security constraints this requires some steps to enable it to be used, see notes in file `audio.cpp` 
+
+
 Browser functions only tested on Chrome.
-
-

@@ -1,99 +1,155 @@
 // Global VoiceChanger declarations
 //
-// s60sc 2022 
+// s60sc 2022
 
 #pragma once
 #include "globals.h"
 
 /******************** User modifiable defines *******************/
 
-// MAX9814 ADC microphone pinout, Gain & AR can be left disconnected
-#ifdef CONFIG_IDF_TARGET_ESP32
-#define I2S_ADC_UNIT    ADC_UNIT_1
-#define I2S_ADC_CHANNEL ADC1_CHANNEL_5 // Out pin GPIO37
-#endif
-
-// ICSK025A DAC amplifier (LM386)
-// use right channel 
-#ifdef CONFIG_IDF_TARGET_ESP32
-#define I2S_DAC_CHANNEL I2S_DAC_CHANNEL_RIGHT_EN // GPIO25 (J5+ pin)
-#endif
-
-#define ALLOW_SPACES false // set true to allow whitespace in configs.txt key values
+#define ALLOW_SPACES true // set true to allow whitespace in configs.txt key values
 
 // web server ports
-#define WEB_PORT 80 // app control
-#define OTA_PORT (WEB_PORT + 1) // OTA update
+#define HTTP_PORT 80 // app control
+#define HTTPS_PORT 443 // secure app control
+
+//#define USE_WS2812
 
 /*********************** Fixed defines leave as is ***********************/ 
 /** Do not change anything below here unless you know what you are doing **/    
 
 //#define DEV_ONLY // leave commented out
 #define STATIC_IP_OCTAL "152" // dev only
-#define CHECK_MEM false // leave as false
-#define FLUSH_DELAY 200 // for debugging crashes
- 
-#define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.2.2"
+#define DEBUG_MEM false // leave as false
+#define FLUSH_DELAY 0 // for debugging crashes
+#define DBG_ON false // esp debug output
+#define DOT_MAX 50
+#define HOSTNAME_GRP 0
 
-#define MAX_CLIENTS 3 // allowing too many concurrent web clients can cause errors
+#define APP_NAME "VoiceChanger" // max 15 chars
+#define APP_VER "1.3"
+
+#define HTTP_CLIENTS 2 // http, ws
+#define MAX_STREAMS 0
 #define INDEX_PAGE_PATH DATA_DIR "/VC" HTML_EXT
 #define FILE_NAME_LEN 64
+#define IN_FILE_NAME_LEN 128
 #define JSON_BUFF_LEN (2 * 1024) // set big enough to hold json string
-#define MAX_CONFIGS 75 // > number of entries in configs.txt
-#define GITHUB_URL "https://raw.githubusercontent.com/s60sc/ESP32-VoiceChanger/main"
+#define MAX_CONFIGS 80 // > number of entries in configs.txt
+#define GITHUB_PATH "/s60sc/ESP32-VoiceChanger/main"
 
 #define STORAGE LittleFS // One of LittleFS or SD_MMC 
 #define RAMSIZE (1024 * 8) 
 #define CHUNKSIZE (1024 * 4)
-#define RAM_LOG_LEN 5000 // size of ram stored system message log in bytes
-//#define INCLUDE_FTP 
-//#define INCLUDE_SMTP
-//#define INCLUDE_SD
-//#define INCLUDE_MQTT
+#define MIN_RAM 8 // min object size stored in ram instead of PSRAM default is 4096
+#define MAX_RAM 4096 // max object size stored in ram instead of PSRAM default is 4096
+#define TLS_HEAP (64 * 1024) // min free heap for TLS session
+#define WARN_HEAP (32 * 1024) // low free heap warning
+#define WARN_ALLOC (16 * 1024) // low free max allocatable free heap block
+#define MAX_ALERT 1024
 
+#define INCLUDE_FTP_HFS false // ftp.cpp (file upload)
+#define INCLUDE_SMTP false    // smtp.cpp (email)
+#define INCLUDE_MQTT false    // mqtt.cpp
+#define INCLUDE_TGRAM false   // telegram.cpp
+#define INCLUDE_CERTS false   // certificates.cpp (https and server certificate checking)
+#define INCLUDE_WEBDAV true   // webDav.cpp (WebDAV protocol)
+#define INCLUDE_AUDIO true    // audio.cpp (microphone and speaker)
+
+#define ISVC // VC specific code in generics
 #define IS_IO_EXTENDER false // must be false except for IO_Extender
 #define EXTPIN 100
 
 // to determine if newer data files need to be loaded
-#define HTM_VER "1"
-#define JS_VER "0"
-#define CFG_VER "1"
+#define CFG_VER 2
+
+#ifdef CONFIG_IDF_TARGET_ESP32S3 
+#define SERVER_STACK_SIZE (1024 * 8)
+#define DS18B20_STACK_SIZE (1024 * 2)
+#define STICK_STACK_SIZE (1024 * 4)
+#else
+#define SERVER_STACK_SIZE (1024 * 4)
+#define DS18B20_STACK_SIZE (1024)
+#define STICK_STACK_SIZE (1024 * 2)
+#endif
+#define BATT_STACK_SIZE (1024 * 2)
+#define EMAIL_STACK_SIZE (1024 * 6)
+#define FS_STACK_SIZE (1024 * 4)
+#define LOG_STACK_SIZE (1024 * 3)
+#define AUDIO_STACK_SIZE (1024 * 4)
+#define MICREM_STACK_SIZE (1024 * 2)
+#define MQTT_STACK_SIZE (1024 * 4)
+#define PING_STACK_SIZE (1024 * 5)
+#define SERVO_STACK_SIZE (1024)
+#define SUSTAIN_STACK_SIZE (1024 * 4)
+#define TGRAM_STACK_SIZE (1024 * 6)
+#define TELEM_STACK_SIZE (1024 * 4)
+#define UART_STACK_SIZE (1024 * 2)
+
+// task priorities
+#define HTTP_PRI 5
+#define AUDIO_PRI 5
+#define MICREM_PRI 5
+#define STICK_PRI 5
+#define LED_PRI 1
+#define SERVO_PRI 1
+#define LOG_PRI 1
+#define BATT_PRI 1
+#define IDLEMON_PRI 5
 
 #define FILE_EXT "wav"
 #define DMA_BUFF_LEN 1024 // used for I2S buffer size
-#define WAV_HDR_LEN 44
 #define DMA_BUFF_CNT 4
 #define REVERB_SAMPLES 1600
 #define OSAMP 4 // 4 for moderate quality, 32 for best quality
+#define MIC_GAIN_CENTER 3 // mid point
 
 
 /******************** Function declarations *******************/
 
-enum deviceType {I2S_TYPE = 0, PDM_TYPE = 1, ADC_TYPE = 2};
-enum actionType {NO_ACTION, UPDATE_CONFIG, RECORD_ACTION, PLAY_ACTION, PASS_ACTION, WAV_ACTION, STOP_ACTION};
+enum audioAction {NO_ACTION, UPDATE_CONFIG, RECORD_ACTION, PLAY_ACTION, PASS_ACTION, WAV_ACTION, STOP_ACTION};
 
 // global app specific functions
-void actionRequest(actionType doAction);
-void applyFilters(int8_t volume);
-size_t buildWavHeader();
-int8_t getVolumeControl();
+void applyFilters();
+void applyVolume();
+void audioRequest(audioAction doAction);
+int8_t checkPotVol(int8_t adjVol);
+void displayAudioLed(int16_t audioSample);
+uint8_t getBrightness();
+void ledBarGauge(float level);
+void makeRecordingRem(bool isRecording);
 void outputRec();
+void passThru();
+void playRecording();
+bool prepAudio();
+void prepPeripherals();
+void remoteMicHandler(uint8_t* wsMsg, size_t wsMsgLen);
+void restartI2S();
+void setLamp(uint8_t lampVal);
+void setupAudioLed();
 void setupFilters();
 void setupVC();
 void setupWeb();
 void smbPitchShiftInit(float _pitchShift, long _fftFrameSize, long _osamp, float sampleRate);
 void smbPitchShift(size_t numSampsToProcess, int16_t *indata, int16_t *outdata);
+size_t updateWavHeader();
 void updateVars(const char* jsonKey, const char* jsonVal); 
+void wsJsonSend(const char* keyStr, const char* valStr);
 
 /******************** Global app declarations *******************/
 
-extern int ampBckIo;
-extern int ampWsIo;
-extern int ampSdIo;
-extern int amicSckIo;
-extern int amicWsIo;
-extern int amicSdIo;
+extern const char* appConfig;
+
+extern int mampBckIo;
+extern int mampSwsIo;
+extern int mampSdIo;
+extern int micSckPin;
+extern int micSWsPin;
+extern int micSdPin;
+extern bool I2Smic;
+extern bool I2Samp;
+extern bool micUse;
+extern bool micRem;
 
 // record & play button pins
 extern int buttonPlayPin;
@@ -102,7 +158,13 @@ extern int buttonPassPin;
 extern int buttonStopPin; 
 extern int sanalogPin; 
 extern int saudioLedPin; 
+extern int saudioClockPin; 
+extern int saudioDataPin;
+extern int ledBarClock;
+extern int ledBarData;
 extern int switchModePin;
+extern bool volatile stopAudio;
+extern TaskHandle_t audioHandle;
 
 // web filter parameters
 extern bool RING_MOD;
@@ -137,41 +199,22 @@ extern int DECAY_FACTOR; // factor used control reverb decay
 extern float PITCH_SHIFT; // factor used shift pitch up or down
 
 // other web settings
-extern uint8_t PREAMP_GAIN; // microphone preamplification factor
-extern int8_t AMP_VOL; // amplifier volume factor
+extern int micGain; // microphone preamplification factor
+extern int8_t ampVol; // amplifier volume factor
 extern uint8_t BRIGHTNESS; // audio led level brightness
 extern bool DISABLE; // temporarily disable filter settings on browser
 
 // other settings
 extern bool USE_POT; // whether external volume control potentiometer being used
-extern uint16_t SAMPLE_RATE; // audio rate in Hz
-extern int16_t audBuffer[]; // audio samples output buffer
-extern const size_t audBytes;
-extern uint8_t* recordBuffer; // store recording
-extern volatile actionType THIS_ACTION;
-
-// define device types being used
-extern deviceType MIC_TYPE;
-extern deviceType AMP_TYPE;
+extern uint32_t SAMPLE_RATE; // audio rate in Hz
+extern int16_t* sampleBuffer; // audio samples output buffer
+extern const size_t sampleBytes;
+extern uint8_t* audioBuffer; // store recording
+extern volatile audioAction THIS_ACTION;
+extern bool lampUse; // true to audio led
+extern bool ledBarUse; // true to MY9921 led bar
+extern int lampPin; // if useLamp is true
 
 // I2S port settings (I2S_NUM_1 does not support PDM or ADC)
 extern i2s_port_t I2S_MIC_PORT;
 extern i2s_port_t I2S_AMP_PORT;
-
-/************************** structures ********************************/
-
-struct WavHeader_Struct {
-  char Riff[4]; // 'RIFF'
-  uint32_t FileSize; // WAV_HDR_LEN + DataSize - 8
-  char FileFormat[4]; // 'WAVE'   
-  char FormatChunk[4]; //'fmt ' 
-  uint32_t ChunkLen; // 16
-  uint16_t FormatType;  // 1        
-  uint16_t NumChannels; // 1 (mono)
-  uint32_t SampleRate;     
-  uint32_t AvgBytesPerSec ; // SampleRate * BlockAlign
-  uint16_t BlockAlign ; // 2 : BitsPerSample * NumChannels / 8  
-  uint16_t BitsPerSample; // 16    
-  char DataChunk[4]; // 'data'
-  uint32_t DataSize;         
-};
