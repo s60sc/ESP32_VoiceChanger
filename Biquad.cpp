@@ -161,7 +161,7 @@ void Biquad::calcBiquad(void) {
             }
             break;
     }
-    LOG_DBG("BiQuad %i: Fc %0.10f, Q %0.10f, Gain %0.10f, a0 %0.10f, a1 %0.10f, a2 %0.10f, b1 %0.10f, b2 %0.10f", 
+    LOG_VRB("BiQuad %i: Fc %0.10f, Q %0.10f, Gain %0.10f, a0 %0.10f, a1 %0.10f, a2 %0.10f, b1 %0.10f, b2 %0.10f", 
       this->type, Fc, Q, peakGain, a0, a1, a2, b1, b2); // ordered to be consistent with other biquad class 
     return;
 }

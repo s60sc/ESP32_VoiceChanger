@@ -6,7 +6,7 @@
 // I2S and PDM microphones are supported, and a mic on remote device using browser
 // I2S and (ESP32 only) analog amplifiers are supported.
 // Optional potentiometer via analog pin to provide manual volume & brightness control
-// Audio controlled brightness can be applied to single LEDs or a MY9921 LED bar
+// Audio controlled brightness can be applied to individual LEDs or a MY9921 LED bar
 //
 // The operation of the Voice Changer can be configured via a browser connected
 // to a web server hosted on the ESP32

@@ -210,16 +210,7 @@ bool updateAppStatus(const char* variable, const char* value) {
   else if (!strcmp(variable, "Srate")) SAMPLE_RATE = intVal; 
 
   // binary integer
-  else if (!strcmp(variable, "MicChan")) {
-    // set I2S port for microphone, amp is opposite
-    if (intVal) {
-      I2S_MIC_PORT = I2S_NUM_1;
-      I2S_AMP_PORT = I2S_NUM_0;
-    } else {
-      I2S_MIC_PORT = I2S_NUM_0;
-      I2S_AMP_PORT = I2S_NUM_1;
-    }
-  }
+  else if (!strcmp(variable, "MicChan")) setI2Schan(intVal);
   
   // float
   else if (!strcmp(variable, "BPqval")) BP_Q = fltVal;
@@ -278,20 +269,20 @@ void appSpecificWsHandler(const char* wsMsg) {
       micRem = false;
       xTaskNotifyGive(audioHandle);
     break;
-    case 'H': 
+    case 'H':
       // keepalive heartbeat, return status
     break;
-    case 'S': 
+    case 'S':
       // status request
-      buildJsonString(wsLen); // required config number 
+      buildJsonString(wsLen); // required config number
       logPrint("%s\n", jsonBuff);
-    break;   
-    case 'U': 
+    break;
+    case 'U':
       // update or control request
       memcpy(jsonBuff, wsMsg + 1, wsLen); // remove 'U'
       parseJson(wsLen);
     break;
-    case 'K': 
+    case 'K':
       // kill websocket connection
       killSocket();
     break;
@@ -309,7 +300,7 @@ void wsJsonSend(const char* keyStr, const char* valStr) {
 }
 
 void buildAppJsonString(bool filter) {
-  // build app specific part of json string 
+  // build app specific part of json string
   char* p = jsonBuff + 1;
   *p = 0;
 }
@@ -336,9 +327,9 @@ esp_err_t appSpecificSustainHandler(httpd_req_t* req) {
 void externalAlert(const char* subject, const char* message) {
   // alert any configured external servers
 }
-  
+
 bool appDataFiles() {
-  // callback from setupAssist.cpp, for any app specific files 
+  // callback from setupAssist.cpp, for any app specific files
   return true;
 }
 
@@ -346,6 +337,9 @@ void doAppPing() {}
 
 void OTAprereq() {
   stopPing();
+}
+
+void stepperDone() {
 }
 
 /************** default app configuration **************/

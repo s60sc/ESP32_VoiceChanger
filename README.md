@@ -4,10 +4,14 @@ ESP32 application to change a voice to be eg stormtrooper or dalek sounding, eit
 for playback on a media player.
 Can be hosted on a ESP32 or ESP32-S3.
 
+Version 1.4 updated to compile with Arduino core 2.x or 3.x, but if app compiled with arduino core v3.x:
+* ESP32 cannot be used yet, only ESP32S3.
+* PDM microphone and analog amplifier not yet available.
+
 ## Installation
 
 Download github files into the Arduino IDE sketch folder, removing `-main` from the application folder name.
-Compile with PSRAM enabled if available, and the following Partition scheme:
+Compile using arduino core v2.x or V3.x with PSRAM enabled and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
 

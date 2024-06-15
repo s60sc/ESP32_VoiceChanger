@@ -7,16 +7,14 @@
 
 /******************** User modifiable defines *******************/
 
-#define ALLOW_SPACES true // set true to allow whitespace in configs.txt key values
+#define ALLOW_SPACES false // set true to allow whitespace in configs.txt key values
 
 // web server ports
 #define HTTP_PORT 80 // app control
 #define HTTPS_PORT 443 // secure app control
 
-//#define USE_WS2812
-
 /*********************** Fixed defines leave as is ***********************/ 
-/** Do not change anything below here unless you know what you are doing **/    
+/** Do not change anything below here unless you know what you are doing **/
 
 //#define DEV_ONLY // leave commented out
 #define STATIC_IP_OCTAL "152" // dev only
@@ -27,7 +25,7 @@
 #define HOSTNAME_GRP 0
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.3"
+#define APP_VER "1.4"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -38,7 +36,7 @@
 #define MAX_CONFIGS 80 // > number of entries in configs.txt
 #define GITHUB_PATH "/s60sc/ESP32-VoiceChanger/main"
 
-#define STORAGE LittleFS // One of LittleFS or SD_MMC 
+#define STORAGE LittleFS // One of LittleFS or SD_MMC
 #define RAMSIZE (1024 * 8) 
 #define CHUNKSIZE (1024 * 4)
 #define MIN_RAM 8 // min object size stored in ram instead of PSRAM default is 4096
@@ -125,6 +123,7 @@ bool prepAudio();
 void prepPeripherals();
 void remoteMicHandler(uint8_t* wsMsg, size_t wsMsgLen);
 void restartI2S();
+void setI2Schan(int whichChan);
 void setLamp(uint8_t lampVal);
 void setupAudioLed();
 void setupFilters();
@@ -132,6 +131,7 @@ void setupVC();
 void setupWeb();
 void smbPitchShiftInit(float _pitchShift, long _fftFrameSize, long _osamp, float sampleRate);
 void smbPitchShift(size_t numSampsToProcess, int16_t *indata, int16_t *outdata);
+void stepperDone();
 size_t updateWavHeader();
 void updateVars(const char* jsonKey, const char* jsonVal); 
 void wsJsonSend(const char* keyStr, const char* valStr);
@@ -214,7 +214,3 @@ extern volatile audioAction THIS_ACTION;
 extern bool lampUse; // true to audio led
 extern bool ledBarUse; // true to MY9921 led bar
 extern int lampPin; // if useLamp is true
-
-// I2S port settings (I2S_NUM_1 does not support PDM or ADC)
-extern i2s_port_t I2S_MIC_PORT;
-extern i2s_port_t I2S_AMP_PORT;
