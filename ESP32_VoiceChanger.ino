@@ -4,7 +4,7 @@
 // The microphone input, and the output to amplifier, each make use of a
 // separate I2S peripheral in the ESP32 or ESP32S3
 // I2S and PDM microphones are supported, and a mic on remote device using browser
-// I2S and (ESP32 only) analog amplifiers are supported.
+// I2S amplifiers are supported.
 // Optional potentiometer via analog pin to provide manual volume & brightness control
 // Audio controlled brightness can be applied to individual LEDs or a MY9921 LED bar
 //

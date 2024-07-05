@@ -44,7 +44,7 @@ static bool wgetFile(const char* filePath) {
           https.end();
           f.close();
           if (httpCode == HTTP_CODE_OK) {
-            if (!strcmp(filePath, CONFIG_FILE_PATH)) doRestart("config file downloaded");
+            if (!strcmp(filePath, CONFIG_FILE_PATH)) doRestart("Config file downloaded");
             res = true;
           } else {
             LOG_WRN("HTTP Get failed with code: %d", httpCode);

@@ -4,14 +4,11 @@ ESP32 application to change a voice to be eg stormtrooper or dalek sounding, eit
 for playback on a media player.
 Can be hosted on a ESP32 or ESP32-S3.
 
-Version 1.4 updated to compile with Arduino core 2.x or 3.x, but if app compiled with arduino core v3.x:
-* ESP32 cannot be used yet, only ESP32S3.
-* PDM microphone and analog amplifier not yet available.
 
 ## Installation
 
 Download github files into the Arduino IDE sketch folder, removing `-main` from the application folder name.
-Compile using arduino core v2.x or V3.x with PSRAM enabled and the following Partition scheme:
+Compile using arduino core v2.x or v3.x with PSRAM enabled and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
 
@@ -27,17 +24,18 @@ Optionally LEDs and MY9221 based LED bars can be connected that will flash accor
 A potentiometer can also be connected to control amplifier volume and LED brightness.
 To enable recording the ESP32 needs to host PSRAM.
 
-The types of microphone and amplifier that can be connected are combinations of I2S (mic & amp), PDM (mic) and Analog (amp).
-At least one device must be I2S as the ESP32 only supports PDM and Analog on one I2S peripheral. Analog microphones are not supported as low quality.
+The types of microphone and amplifier that can be connected are combinations of I2S (mic & amp) and PDM (mic)
+At least one device must be I2S as the ESP32 only supports PDM on one I2S peripheral. 
 Cheap I2S devices that have been successfully tested with this app are:
 * INMP441 I2S microphone
 * MAX98357A I2S 3W amplifier
 
 Other devices tested are:
 * MP34DT01 PDM microphone
-* ICSK025A DAC 3W amplifier
 
-Analog devices are not supported by I2S on ESP32-S3.
+If using I2S microphone and I2S amplifier when compiled with arduino core v3.x, the same pin numbers should be assigned for:
+* mic I2S WS = amp I2S LRCLK 
+* mic I2S SCK = amp I2S BCLK
 
 The application can be controlled by hardware buttons connected to pins defined via the app web page.
 

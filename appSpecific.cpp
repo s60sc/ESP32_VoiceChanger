@@ -181,7 +181,7 @@ static void doDownload(httpd_req_t* req) {
 
 /************************ webServer callbacks *************************/
 
-bool updateAppStatus(const char* variable, const char* value) {
+bool updateAppStatus(const char* variable, const char* value, bool fromUser) {
   // update vars from configs and browser input
   bool res = true;
   int intVal = atoi(value);
@@ -223,7 +223,6 @@ bool updateAppStatus(const char* variable, const char* value) {
   else if (!strcmp(variable, "Disable")) DISABLE = (bool)intVal;
   else if (!strcmp(variable, "VolPot")) USE_POT = (bool)intVal;
   else if (!strcmp(variable, "mType")) I2Smic = bool(intVal);
-  else if (!strcmp(variable, "aType")) I2Samp = bool(intVal);
   else if (!strcmp(variable, "micRem")) {
     micRem = bool(intVal);
     LOG_INF("Remote mic is %s", micRem ? "On" : "Off");
@@ -380,7 +379,6 @@ Bright~3~98~T~n/a
 Srate~16000~98~T~n/a
 MicChan~1~98~T~n/a
 mType~1~98~T~n/a
-aType~1~98~T~n/a
 Disable~0~98~T~n/a
 VolPot~0~98~T~n/a
 restart~~99~T~na

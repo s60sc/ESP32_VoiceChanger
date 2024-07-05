@@ -25,7 +25,7 @@
 #define HOSTNAME_GRP 0
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.4"
+#define APP_VER "1.5"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -59,7 +59,7 @@
 #define EXTPIN 100
 
 // to determine if newer data files need to be loaded
-#define CFG_VER 2
+#define CFG_VER 3
 
 #ifdef CONFIG_IDF_TARGET_ESP32S3 
 #define SERVER_STACK_SIZE (1024 * 8)

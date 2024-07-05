@@ -80,6 +80,7 @@
 #define NULL_TEMP -127
 #define OneMHz 1000000
 #define USECS 1000000
+#define MAGIC_NUM 987654321
 
 // global mandatory app specific functions, in appSpecific.cpp 
 bool appDataFiles();
@@ -89,7 +90,7 @@ void appSpecificWsBinHandler(uint8_t* wsMsg, size_t wsMsgLen);
 void appSpecificWsHandler(const char* wsMsg);
 void appSpecificTelegramTask(void* p);
 void buildAppJsonString(bool filter);
-bool updateAppStatus(const char* variable, const char* value);
+bool updateAppStatus(const char* variable, const char* value, bool fromUser = true);
 
 // global general utility functions in utils.cpp / utilsFS.cpp / peripherals.cpp    
 void buildJsonString(uint8_t filter);
@@ -173,7 +174,7 @@ bool startWifi(bool firstcall = true);
 void stopPing();
 void syncToBrowser(uint32_t browserUTC);
 bool updateConfigVect(const char* variable, const char* value);
-void updateStatus(const char* variable, const char* _value);
+void updateStatus(const char* variable, const char* _value, bool fromUser = true);
 esp_err_t uploadHandler(httpd_req_t *req);
 void urlDecode(char* inVal);
 bool urlEncode(const char* inVal, char* encoded, size_t maxSize);
@@ -184,6 +185,7 @@ void wsAsyncSend(const char* wsData);
 void startMqttClient();  
 void stopMqttClient();  
 void mqttPublish(const char* payload);
+void mqttPublishPath(const char* suffix, const char* payload);
 // telegram.cpp
 bool getTgramUpdate(char* response);
 bool sendTgramMessage(const char* info, const char* item, const char* parseMode);

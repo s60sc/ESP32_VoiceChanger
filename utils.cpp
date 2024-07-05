@@ -19,6 +19,7 @@ bool dataFilesChecked = false;
 char startupFailure[SF_LEN] = {0};
 size_t alertBufferSize = 0;
 byte* alertBuffer = NULL; // buffer for telegram / smtp alert image
+RTC_NOINIT_ATTR uint32_t crashLoop;
 static void initBrownout(void);
 
 /************************** Wifi **************************/
@@ -42,7 +43,7 @@ char ST_ns2[MAX_IP_LEN] = ""; // alternative DNS Server, can be blank
 // Access point Config Portal SSID and Pass
 char AP_SSID[MAX_HOST_LEN] = "";
 char AP_Pass[MAX_PWD_LEN] = "";
-char AP_ip[MAX_IP_LEN]  = ""; //Leave blank to use 192.168.4.1
+char AP_ip[MAX_IP_LEN]  = ""; // Leave blank to use 192.168.4.1
 char AP_sn[MAX_IP_LEN]  = "";
 char AP_gw[MAX_IP_LEN]  = "";
 
@@ -112,7 +113,7 @@ static void onWiFiEvent(WiFiEvent_t event) {
     case ARDUINO_EVENT_WIFI_STA_START: LOG_INF("Wifi Station started, connecting to: %s", ST_SSID); break;
     case ARDUINO_EVENT_WIFI_STA_STOP: LOG_INF("Wifi Station stopped %s", ST_SSID); break;
     case ARDUINO_EVENT_WIFI_AP_START: {
-      if (!strcmp(WiFi.softAPSSID().c_str(), AP_SSID) || !strlen(AP_SSID)) {
+      if (strlen(AP_SSID) && !strcmp(WiFi.softAPSSID().c_str(), AP_SSID)) {
         LOG_INF("Wifi AP SSID: %s started, use '%s://%s' to connect", WiFi.softAPSSID().c_str(), useHttps ? "https" : "http", WiFi.softAPIP().toString().c_str());
         APstarted = true;
       }
@@ -255,6 +256,10 @@ static void statusCheck() {
 #endif
 }
 
+void resetCrashLoop() {
+  crashLoop = 0;
+}
+
 static void pingSuccess(esp_ping_handle_t hdl, void *args) {
   //uint32_t elapsed_time;
   //esp_ping_get_profile(hdl, ESP_PING_PROF_TIMEGAP, &elapsed_time, sizeof(elapsed_time));
@@ -268,6 +273,7 @@ static void pingSuccess(esp_ping_handle_t hdl, void *args) {
     }
   }
   resetWatchDog();
+  if (dataFilesChecked) resetCrashLoop();
   statusCheck();
 }
 
@@ -654,6 +660,7 @@ void debugMemory(const char* caller) {
 
 void doRestart(const char* restartStr) {
   LOG_ALT("Controlled restart: %s", restartStr);
+  resetCrashLoop();
   flush_log(true);
   delay(2000);
   ESP.restart();
@@ -702,14 +709,15 @@ bool useLogColors = false;  // true to colorise log messages (eg if using idf.py
 bool wsLog = false;
 
 #define WRITE_CACHE_CYCLE 5
+
 bool sdLog = false; // log to SD
 int logType = 0; // which log contents to display (0 : ram, 1 : sd, 2 : ws)
 static FILE* log_remote_fp = NULL;
 static uint32_t counter_write = 0;
 
-// RAM memory based logging in RTC slow memory
-RTC_NOINIT_ATTR uint16_t mlogEnd; // cannot init here
+// RAM memory based logging in RTC slow memory (cannot init)
 RTC_NOINIT_ATTR char messageLog[RAM_LOG_LEN];
+RTC_NOINIT_ATTR uint16_t mlogEnd;
 
 static void ramLogClear() {
   mlogEnd = 0;
@@ -832,6 +840,8 @@ void logSetup() {
   printf("\n\n");
   if (DEBUG_MEM) printf("init > Free: heap %lu\n", ESP.getFreeHeap()); 
   if (!DBG_ON) esp_log_level_set("*", ESP_LOG_NONE); // suppress ESP_LOG_ERROR messages
+  if (crashLoop == MAGIC_NUM) snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Crash loop detected");
+  crashLoop = MAGIC_NUM;
   logSemaphore = xSemaphoreCreateBinary(); // flag that log message formatted
   logMutex = xSemaphoreCreateMutex(); // control access to log formatter
   xSemaphoreGive(logSemaphore);
