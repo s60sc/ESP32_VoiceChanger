@@ -849,7 +849,9 @@ static void doStep() {
     if (!--stepsToDo) {
       setStickTimer(false, 0);  // stop task timer
       for (int i = 0; i < stepperPins; i++) pinMode(stepINpins[i], INPUT); // stop unnecessary power use
+#if INCLUDE_PGRAM
       stepperDone();
+#endif
     }
     if (clockwise) seqIndex = (seqIndex == stepperPins - 1) ? 0 : seqIndex + 1;
     else seqIndex = (seqIndex == 0) ? stepperPins - 1 : seqIndex - 1;

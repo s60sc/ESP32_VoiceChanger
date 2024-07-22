@@ -133,13 +133,15 @@ static void onWiFiEvent(WiFiEvent_t event) {
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: LOG_INF("WiFi Station disconnected"); break;
     case ARDUINO_EVENT_WIFI_AP_STACONNECTED: LOG_INF("WiFi AP client connection"); break;
     case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED: LOG_INF("WiFi AP client disconnection"); break;
+    case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED: break;
+    case ARDUINO_EVENT_WIFI_AP_GOT_IP6: LOG_INF("AP interface V6 IP addr is preferred"); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP6: LOG_INF("Station interface V6 IP addr is preferred"); break;
     default: LOG_WRN("WiFi Unhandled event %d", event); break;
   }
 }
 
 static void setWifiAP() {
   if (!APstarted) {
-    WiFi.softAPdisconnect(true); // kill rogue AP on startup
     // Set access point with static ip if provided
     if (strlen(AP_ip) > 1) {
       LOG_INF("Set AP static IP :%s, %s, %s", AP_ip, AP_gw, AP_sn);  
@@ -171,6 +173,9 @@ static void setWifiSTA() {
       LOG_INF("Wifi Station set static IP");
     } 
   } else LOG_INF("Wifi Station IP from DHCP");
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+  WiFi.enableIPv6(USE_IP6); 
+#endif
   WiFi.begin(ST_SSID, ST_Pass);
   debugMemory("setWifiSTA");
 }
@@ -181,6 +186,7 @@ bool startWifi(bool firstcall) {
     WiFi.mode(WIFI_AP_STA);
     WiFi.persistent(false); // prevent the flash storage WiFi credentials
     WiFi.setAutoReconnect(false); // Set whether module will attempt to reconnect to an access point in case it is disconnected
+    WiFi.softAPdisconnect(true); // kill rogue AP on startup
     WiFi.setHostname(hostName);
     delay(100);
     WiFi.onEvent(onWiFiEvent);
@@ -338,7 +344,7 @@ void getExtIP() {
   // Get external IP address
   if (doGetExtIP) { 
     WiFiClientSecure hclient;
-    if (remoteServerConnect(hclient, EXT_IP_HOST, HTTPS_PORT, "")) {
+    if (remoteServerConnect(hclient, EXT_IP_HOST, HTTPS_PORT, "", GETEXTIP)) {
       HTTPClient https;
       int httpCode = HTTP_CODE_NOT_FOUND;
       if (https.begin(hclient, EXT_IP_HOST, HTTPS_PORT, "/", true)) {
@@ -364,33 +370,7 @@ void getExtIP() {
 
 /************** generic WiFiClientSecure functions ******************/
 
-bool remoteServerConnect(WiFiClientSecure& sclient, const char* serverName, uint16_t serverPort, const char* serverCert) {
-  // Connect to server if not already connected or previously disconnected
-  if (sclient.connected()) return true;
-  else {
-    if (ESP.getFreeHeap() > TLS_HEAP) {
-      // not connected, so try for a period of time
-      if (useSecure && strlen(serverCert)) sclient.setCACert(serverCert);
-      else sclient.setInsecure(); // no cert check
-  
-      uint32_t startTime = millis();
-      while (!sclient.connected()) {
-        if (sclient.connect(serverName, serverPort)) break;
-        if (millis() - startTime > responseTimeoutSecs * 1000) break;
-        delay(2000);
-      }
-      if (sclient.connected()) return true;
-      else {
-        // failed to connect in allocated time
-        // 'Memory allocation failed' indicates lack of heap space
-        char errBuf[100] = "Unknown server error";
-        sclient.lastError(errBuf, sizeof(errBuf));
-        LOG_WRN("Timed out connecting to server: %s, Err: %s", serverName, errBuf);
-      }
-    } else LOG_WRN("Insufficient heap %s for %s TLS session", fmtSize(ESP.getFreeHeap()), serverName);
-  }
-  return false;
-}
+static uint8_t failCounts[REMFAILCNT] = {0};
 
 void remoteServerClose(WiFiClientSecure& sclient) {
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
@@ -399,6 +379,51 @@ void remoteServerClose(WiFiClientSecure& sclient) {
   if (sclient.available()) sclient.flush();
 #endif
   if (sclient.connected()) sclient.stop();
+}
+
+bool remoteServerConnect(WiFiClientSecure& sclient, const char* serverName, uint16_t serverPort, const char* serverCert, uint8_t connIdx) {
+  // Connect to server if not already connected or previously disconnected
+  if (sclient.connected()) return true;
+  else {
+    if (failCounts[connIdx] >= MAX_FAIL) {
+      if (failCounts[connIdx] == MAX_FAIL) {
+        LOG_WRN("Abandon %s connection attempt", serverName);
+        failCounts[connIdx] = MAX_FAIL + 1;
+      }
+    } else {
+      if (ESP.getFreeHeap() > TLS_HEAP) {
+        // not connected, so try for a period of time
+        if (useSecure && strlen(serverCert)) sclient.setCACert(serverCert);
+        else sclient.setInsecure(); // no cert check
+    
+        uint32_t startTime = millis();
+        while (!sclient.connected()) {
+          if (sclient.connect(serverName, serverPort)) break;
+          if (millis() - startTime > responseTimeoutSecs * 1000) break;
+          delay(2000);
+        }
+        if (sclient.connected()) {
+          failCounts[connIdx] = 0;
+          return true;
+        }
+        else {
+          // failed to connect in allocated time
+          // 'Memory allocation failed' indicates lack of heap space
+          // 'Generic error' can indicate DNS failure
+          char errBuf[100] = "Unknown server error";
+          int errNum = sclient.lastError(errBuf, sizeof(errBuf));
+          LOG_WRN("Timed out connecting to server: %s, Err: %d, %s", serverName, errNum, errBuf);
+        }
+      } else LOG_WRN("Insufficient heap %s for %s TLS session", fmtSize(ESP.getFreeHeap()), serverName);
+      failCounts[connIdx]++;
+    }
+  }
+  return false;
+}
+
+void remoteServerReset() {
+  // reset fail counts
+  for (uint8_t i = 0; i < REMFAILCNT; i++) failCounts[i] = 0;
 }
 
 /************************** NTP  **************************/
@@ -660,6 +685,9 @@ void debugMemory(const char* caller) {
 
 void doRestart(const char* restartStr) {
   LOG_ALT("Controlled restart: %s", restartStr);
+#ifdef ISCAM
+  appShutdown();
+#endif
   resetCrashLoop();
   flush_log(true);
   delay(2000);
@@ -1064,9 +1092,9 @@ IRAM_ATTR static void notifyBrownout(void *arg) {
 
 static void initBrownout(void) {
   // brownout warning only output once to prevent bootloop
-  if (brownoutStatus == 'R') LOG_WRN("%s", "Brownout warning previously notified");
+  if (brownoutStatus == 'R') LOG_WRN("Brownout warning previously notified");
   else if (brownoutStatus == 'B') {
-    LOG_WRN("%s", "Brownout occurred due to inadequate power supply");
+    LOG_WRN("Brownout occurred due to inadequate power supply");
     brownoutStatus = 'R';
   } else {
     brownout_hal_config_t cfg = {

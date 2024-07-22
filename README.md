@@ -8,7 +8,7 @@ Can be hosted on a ESP32 or ESP32-S3.
 ## Installation
 
 Download github files into the Arduino IDE sketch folder, removing `-main` from the application folder name.
-Compile using arduino core v2.x or v3.x with PSRAM enabled and the following Partition scheme:
+Compile using arduino core v2.x or v3.x (min v3.0.3) with PSRAM enabled and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
 

@@ -26,12 +26,16 @@
 #include "ping/ping_sock.h"
 #include <Preferences.h>
 #include <regex>
+#if !CONFIG_IDF_TARGET_ESP32C3
 #include <SD_MMC.h>
+#endif
 #include <LittleFS.h>
 #include <sstream>
 #include <Update.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+////#include <NetworkClient.h> // v3.x only
+////#include <NetworkClientSecure.h> // v3.x only
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <esp_http_server.h>
@@ -57,6 +61,7 @@
 #define CSS_EXT ".css"
 #define ICO_EXT ".ico"
 #define SVG_EXT ".svg"
+#define JPG_EXT ".jpg"
 #define CONFIG_FILE_PATH DATA_DIR "/configs" TEXT_EXT
 #define LOG_FILE_PATH DATA_DIR "/log" TEXT_EXT
 #define OTA_FILE_PATH DATA_DIR "/OTA" HTML_EXT
@@ -81,6 +86,7 @@
 #define OneMHz 1000000
 #define USECS 1000000
 #define MAGIC_NUM 987654321
+#define MAX_FAIL 5
 
 // global mandatory app specific functions, in appSpecific.cpp 
 bool appDataFiles();
@@ -152,7 +158,8 @@ float readTemperature(bool isCelsius, bool onlyDS18 = false);
 float readVoltage();
 void remote_log_init();
 void remoteServerClose(WiFiClientSecure& sclient);
-bool remoteServerConnect(WiFiClientSecure& sclient, const char* serverName, uint16_t serverPort, const char* serverCert);
+bool remoteServerConnect(WiFiClientSecure& sclient, const char* serverName, uint16_t serverPort, const char* serverCert, uint8_t connIdx);
+void remoteServerReset();
 void removeChar(char* s, char c);
 void replaceChar(char* s, char c, char r);
 void reset_log();
@@ -260,13 +267,6 @@ extern char mqtt_user[];
 extern char mqtt_user_Pass[];
 extern char mqtt_topic_prefix[];  
 
-// External Heartbeat
-extern bool external_heartbeat_active;
-extern char external_heartbeat_domain[]; //External Heartbeat domain/IP  
-extern char external_heartbeat_uri[];    //External Heartbeat uri (i.e. /myesp32-cam-hub/index.php)
-extern char external_heartbeat_port[];   //External Heartbeat server port to connect.  
-extern char external_heartbeat_token[];  //External Heartbeat server auth token.  
-
 // control sending alerts 
 extern size_t alertBufferSize;
 extern byte* alertBuffer;
@@ -348,6 +348,8 @@ extern bool formatIfMountFailed ; // Auto format the file system if mount failed
   (method == HTTP_LINK) ? "LINK" : \
   (method == HTTP_UNLINK) ? "UNLINK" : \
   "UNKNOWN"
+
+enum RemoteFail {SETASSIST, GETEXTIP, TGRAMCONN, FSFTP, EMAILCONN, EXTERNALHB, BLOCKLIST, REMFAILCNT}; // REMFAILCNT always last
 
 /*********************** Log formatting ************************/
 

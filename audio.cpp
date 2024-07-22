@@ -641,11 +641,11 @@ bool prepAudio() {
     }
     if (micUse) {
       micUse = setupMic(); 
-      if (!micUse) LOG_WRN("%s", "Unable to start mic");
+      if (!micUse) LOG_WRN("Unable to start mic");
     }
     if (mampUse) {
       mampUse = setupAmp();
-      if (!mampUse) LOG_WRN("%s", "Unable to start amp");
+      if (!mampUse) LOG_WRN("Unable to start amp");
     }
     
     if (micUse || mampUse) {

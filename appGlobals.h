@@ -23,9 +23,10 @@
 #define DBG_ON false // esp debug output
 #define DOT_MAX 50
 #define HOSTNAME_GRP 0
+#define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.5"
+#define APP_VER "1.5.1"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
