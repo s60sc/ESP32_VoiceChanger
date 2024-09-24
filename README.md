@@ -8,7 +8,7 @@ Can be hosted on a ESP32 or ESP32-S3.
 ## Installation
 
 Download github files into the Arduino IDE sketch folder, removing `-main` from the application folder name.
-Compile using arduino core v2.x or v3.x (min v3.0.3) with PSRAM enabled and the following Partition scheme:
+Compile using arduino core v3.0.3 or later with PSRAM enabled and the following Partition scheme:
 * ESP32 - `Minimal SPIFFS (...)`
 * ESP32S3 - `8M with spiffs (...)`
 
@@ -19,7 +19,7 @@ Subsequent updates to the application, or to the **/data** folder files, can be 
 
 ## Hardware
 
-A microphone and amplifier with speaker needs to be connected to the ESP32, and / or a [remote microphone](#remote-microphone) can be used.
+A microphone and amplifier with speaker needs to be connected to the ESP32, and / or a [browser microphone and speaker](#browser-microphone-and-speaker) can be used.
 Optionally LEDs and MY9221 based LED bars can be connected that will flash according to the sound level.
 A potentiometer can also be connected to control amplifier volume and LED brightness.
 To enable recording the ESP32 needs to host PSRAM.
@@ -33,7 +33,7 @@ Cheap I2S devices that have been successfully tested with this app are:
 Other devices tested are:
 * MP34DT01 PDM microphone
 
-If using I2S microphone and I2S amplifier when compiled with arduino core v3.x, the same pin numbers should be assigned for:
+If using I2S microphone and I2S amplifier the same pin numbers should be assigned for:
 * mic I2S WS = amp I2S LRCLK 
 * mic I2S SCK = amp I2S BCLK
 
@@ -64,17 +64,17 @@ Control buttons:
 * Save: save current configuration to storage
 * Record / Stop Record: save microphone input to PSRAM (up to 60 secs (ESP32) / 180 secs (ESP32S3) at 16kHz) without filtering, but with Preamp Gain applied
 * Play / Stop Play: play recording currently in PSRAM using current filter settings
-* PC Mic / Stop PC Mic: use browser [microphone](#remote-microphone)
+* [Speaker and Microphone icons](#browser-microphone-and-speaker)
 * Download: download to browser the current recording using the current filtering as a file named `VoiceChanger.wav` 
 * PassThru / Stop PassThru: microphone input filtered and output to speaker directly
 
 As the recorded data is not filtered it can be replayed with different filter configurations to find the best filter combination and settings.
 
 Other settings:
-* Preamp Gain: microphone gain
-* Volume: amplifier volume level
+* Mic Gain: ESP or browser microphone gain
+* Amp Volume: ESP amplifier volume level
 * Brightness: Maximum LED brightness level
-* Analog Control: if on, volume and brightness are controlled by potentiometer instead of web page
+* Analog Control: if on, volume and brightness are controlled by potentiometer instead of web page sliders
 * Disable: if on, disables current filter settings without changing them to hear original
 
 Example configuration for radio style voice:  
@@ -110,9 +110,11 @@ Example configuration for dalek style voice:
   * **Pins**: Define pins used by microphone, amplifier, buttons.
 
 
-## Remote Microphone
+## Browser Microphone and Speaker
 
-If a PC or phone has a built in microphone this can accessed from the browser and streamed to the ESP32. Due to Windows and browser security constraints this requires some steps to enable it to be used, see notes in file `audio.cpp` 
+If a PC or phone has a built in microphone this can accessed from the browser and streamed to the ESP32 in place of the local microphone. Press the Microphone icon which will blink when active and display a signal level bar. Due to Windows and browser security constraints this requires some steps to enable it to be used, see notes in file `audio.cpp`.
+
+If a PC or phone has a built in speaker this can accessed from the browser to play audio from the ESP32 in place of the local speaker. Press the Speaker icon which will blink when active. The amplifier volume slider does not apply to the browser speaker, use the device volume control.
 
 
 Browser functions only tested on Chrome.

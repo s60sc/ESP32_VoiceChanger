@@ -26,7 +26,7 @@
 #define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.5.1"
+#define APP_VER "1.6"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -47,20 +47,14 @@
 #define WARN_ALLOC (16 * 1024) // low free max allocatable free heap block
 #define MAX_ALERT 1024
 
-#define INCLUDE_FTP_HFS false // ftp.cpp (file upload)
-#define INCLUDE_SMTP false    // smtp.cpp (email)
-#define INCLUDE_MQTT false    // mqtt.cpp
-#define INCLUDE_TGRAM false   // telegram.cpp
-#define INCLUDE_CERTS false   // certificates.cpp (https and server certificate checking)
 #define INCLUDE_WEBDAV true   // webDav.cpp (WebDAV protocol)
 #define INCLUDE_AUDIO true    // audio.cpp (microphone and speaker)
+#define INCLUDE_PERIPH true   // peripherals.cpp
 
 #define ISVC // VC specific code in generics
-#define IS_IO_EXTENDER false // must be false except for IO_Extender
-#define EXTPIN 100
 
 // to determine if newer data files need to be loaded
-#define CFG_VER 3
+#define CFG_VER 4
 
 #ifdef CONFIG_IDF_TARGET_ESP32S3 
 #define SERVER_STACK_SIZE (1024 * 8)
@@ -76,7 +70,6 @@
 #define FS_STACK_SIZE (1024 * 4)
 #define LOG_STACK_SIZE (1024 * 3)
 #define AUDIO_STACK_SIZE (1024 * 4)
-#define MICREM_STACK_SIZE (1024 * 2)
 #define MQTT_STACK_SIZE (1024 * 4)
 #define PING_STACK_SIZE (1024 * 5)
 #define SERVO_STACK_SIZE (1024)
@@ -88,7 +81,6 @@
 // task priorities
 #define HTTP_PRI 5
 #define AUDIO_PRI 5
-#define MICREM_PRI 5
 #define STICK_PRI 5
 #define LED_PRI 1
 #define SERVO_PRI 1
@@ -111,19 +103,14 @@ enum audioAction {NO_ACTION, UPDATE_CONFIG, RECORD_ACTION, PLAY_ACTION, PASS_ACT
 // global app specific functions
 void applyFilters();
 void applyVolume();
-void audioRequest(audioAction doAction);
+void browserMicInput(uint8_t* wsMsg, size_t wsMsgLen);
 int8_t checkPotVol(int8_t adjVol);
 void displayAudioLed(int16_t audioSample);
 uint8_t getBrightness();
 void ledBarGauge(float level);
-void makeRecordingRem(bool isRecording);
-void outputRec();
-void passThru();
-void playRecording();
-bool prepAudio();
+void prepAudio();
 void prepPeripherals();
-void remoteMicHandler(uint8_t* wsMsg, size_t wsMsgLen);
-void restartI2S();
+void closeI2S();
 void setI2Schan(int whichChan);
 void setLamp(uint8_t lampVal);
 void setupAudioLed();
@@ -149,8 +136,9 @@ extern int micSWsPin;
 extern int micSdPin;
 extern bool I2Smic;
 extern bool I2Samp;
-extern bool micUse;
 extern bool micRem;
+extern bool spkrRem;
+extern TaskHandle_t audioHandle;
 
 // record & play button pins
 extern int buttonPlayPin;
@@ -165,7 +153,7 @@ extern int ledBarClock;
 extern int ledBarData;
 extern int switchModePin;
 extern bool volatile stopAudio;
-extern TaskHandle_t audioHandle;
+extern SemaphoreHandle_t audioSemaphore;
 
 // web filter parameters
 extern bool RING_MOD;
@@ -212,6 +200,5 @@ extern int16_t* sampleBuffer; // audio samples output buffer
 extern const size_t sampleBytes;
 extern uint8_t* audioBuffer; // store recording
 extern volatile audioAction THIS_ACTION;
-extern bool lampUse; // true to audio led
 extern bool ledBarUse; // true to MY9921 led bar
 extern int lampPin; // if useLamp is true

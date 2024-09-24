@@ -31,7 +31,7 @@ uint8_t BRIGHTNESS = 3; // audio led level
 bool DISABLE = false; // temporarily disable filter settings on browser
 bool USE_POT = false; // whether external volume / brightness control potentiometer being used
 volatile audioAction THIS_ACTION = NO_ACTION;
-static SemaphoreHandle_t audioSemaphore;
+SemaphoreHandle_t audioSemaphore = NULL; // disables interrupts whilst state change occuring
 
 static inline void IRAM_ATTR wakeTask(TaskHandle_t thisTask) {
   // utility function to resume task from pin interrupt
@@ -48,7 +48,7 @@ void IRAM_ATTR recISR() {
   }
 }
 
-void playISR() {
+void IRAM_ATTR playISR() {
   if (xSemaphoreTakeFromISR(audioSemaphore, NULL) == pdTRUE) {
     THIS_ACTION = PLAY_ACTION;
     wakeTask(audioHandle);
@@ -64,26 +64,6 @@ void IRAM_ATTR passISR() {
 
 void IRAM_ATTR stopISR() {
   stopAudio = true;
-}
-
-void audioRequest(audioAction doAction) {
-  // web request, allow return to web handler immediately,
-  // otherwise if action takes too long, watchdog would be triggered
-  THIS_ACTION = doAction; 
-  stopAudio = true; // stop any unstopped action
-  if (THIS_ACTION == STOP_ACTION) xTaskNotifyGive(audioHandle);
-  else {
-    if (xSemaphoreTake(audioSemaphore, 0) == pdTRUE) {
-      restartI2S();
-      if (prepAudio()) {
-        setupFilters();
-        xTaskNotifyGive(audioHandle);
-        stopAudio = false;
-        displayAudioLed(0);
-        xSemaphoreGive(audioSemaphore);
-      }
-    }
-  }
 }
 
 uint8_t getBrightness() {
@@ -106,7 +86,7 @@ int8_t checkPotVol(int8_t adjVol) {
 }
 
 void displayAudioLed(int16_t audioSample) {
-  if (lampUse || ledBarUse) {
+  if (lampPin || ledBarUse) {
     audioSample = audioSample == SHRT_MIN ? abs(++audioSample) : abs(audioSample);
     float ledLevel = (float)(audioSample) / SHRT_MAX;
     // use sample of sound level for single LED brightness by setting PWM duty cycle
@@ -123,7 +103,6 @@ void setupAudioLed() {
   ledBarUse = (ledBarClock && ledBarData) ? true : false;
   // setup PWM controlled single LED
   lampPin = saudioLedPin;
-  lampUse = lampPin ? true : false;
 }
 
 void setupVC() {
@@ -225,9 +204,12 @@ bool updateAppStatus(const char* variable, const char* value, bool fromUser) {
   else if (!strcmp(variable, "mType")) I2Smic = bool(intVal);
   else if (!strcmp(variable, "micRem")) {
     micRem = bool(intVal);
-    LOG_INF("Remote mic is %s", micRem ? "On" : "Off");
+    LOG_INF("Remote mic is %s", micRem ? "On" : "Off"); 
   }
-
+  else if (!strcmp(variable, "spkrRem")) {
+    spkrRem = (bool)intVal;
+    LOG_INF("Remote speaker is %s", spkrRem ? "On" : "Off");
+  }
   // float with no decimal places
   else if (!strcmp(variable, "BPfreq")) BP_FREQ = fltVal; 
   else if (!strcmp(variable, "HPfreq")) HP_FREQ = fltVal;
@@ -263,10 +245,7 @@ void appSpecificWsHandler(const char* wsMsg) {
   int wsLen = strlen(wsMsg) - 1;
   switch ((char)wsMsg[0]) {
     case 'X':
-      // stop remote mic stream
-      THIS_ACTION = STOP_ACTION;
-      micRem = false;
-      xTaskNotifyGive(audioHandle);
+      // no action
     break;
     case 'H':
       // keepalive heartbeat, return status
@@ -282,8 +261,7 @@ void appSpecificWsHandler(const char* wsMsg) {
       parseJson(wsLen);
     break;
     case 'K':
-      // kill websocket connection
-      killSocket();
+      // no action
     break;
     default:
       LOG_WRN("unknown command %c", (char)wsMsg[0]);
@@ -295,7 +273,7 @@ void wsJsonSend(const char* keyStr, const char* valStr) {
   // send key val as json over websocket
   char jsondata[100];
   sprintf(jsondata, "{\"cfgGroup\":\"-1\", \"%s\":\"%s\"}", keyStr, valStr);
-  wsAsyncSend(jsondata);
+  wsAsyncSendText(jsondata);
 }
 
 void buildAppJsonString(bool filter) {
@@ -310,13 +288,21 @@ esp_err_t appSpecificWebHandler(httpd_req_t* req, const char* variable, const ch
   if (!strcmp(variable, "action")) {
     if (intVal == UPDATE_CONFIG) updateStatus("save", "1"); // save current status in config
     else if (intVal == WAV_ACTION) doDownload(req);
-    else audioRequest((audioAction)intVal); // carry out required action
+    else {
+      // action request, allow return to web handler immediately,
+      // otherwise if action takes too long, watchdog would be triggered
+      THIS_ACTION = (audioAction)intVal;
+      stopAudio = true; // stop any unstopped action
+      wsAsyncSendText("#M0"); // stop browser mic sending
+      if ((THIS_ACTION != STOP_ACTION) && (xSemaphoreTake(audioSemaphore, pdMS_TO_TICKS(200)) == pdTRUE)) xTaskNotifyGive(audioHandle);
+      else LOG_WRN("Waiting for previous action to terminate");
+    }
   }
   return ESP_OK;
 }
 
 void appSpecificWsBinHandler(uint8_t* wsMsg, size_t wsMsgLen) {
-  remoteMicHandler(wsMsg, wsMsgLen);
+  browserMicInput(wsMsg, wsMsgLen);
 }
 
 esp_err_t appSpecificSustainHandler(httpd_req_t* req) {
@@ -399,20 +385,20 @@ Auth_Pass~~0~T~Optional user name for web page password
 wifiTimeoutSecs~30~0~N~WiFi connect timeout (secs)
 timezone~GMT0~0~T~Timezone string: tinyurl.com/TZstring
 logType~0~99~N~Output log selection
-micSckPin~-1~1~N~pin for microphone I2S SCK
-micSWsPin~-1~1~N~pin for microphone I2S WS, PDM CLK
-micSdPin~-1~1~N~pin for microphone I2S SD, PDM DAT 
-mampBckIo~-1~1~N~pin for amplifier I2S BCLK 
-mampSwsIo~-1~1~N~pin for amplifier I2S LRCLK 
-mampSdIo~-1~1~N~pin for amplifier I2S DIN
-buttonPlayPin~~1~N~pin to start play
-buttonRecPin~~1~N~pin to start record
-buttonPassPin~~1~N~pin to start passthru
-buttonStopPin~~1~N~pin to stop: play, record, passthru
-sanalogPin~~1~N~analog pin for volume & brightness pot control
-saudioLedPin~~1~N~pin for audio controlled output lights
-saudioClockPin~~1~N~pin for audio controlled LED bar clock
-saudioDataPin~~1~N~pin for audio controlled LED bar data
-switchModePin~~1~N~pin to use pot for brightness (hi) or vol (lo)
+micSckPin~-1~1~N~Microphone I2S SCK pin
+micSWsPin~-1~1~N~Microphone I2S WS, PDM CLK pin
+micSdPin~-1~1~N~Microphone I2S SD, PDM DAT pin
+mampBckIo~-1~1~N~Amplifier I2S BCLK (SCK) pin
+mampSwsIo~-1~1~N~Amplifier I2S LRCLK (WS) pin
+mampSdIo~-1~1~N~Amplifier I2S DIN pin
+buttonPlayPin~~1~N~Pin to start play
+buttonRecPin~~1~N~Pin to start record
+buttonPassPin~~1~N~Pin to start passthru
+buttonStopPin~~1~N~Pin to stop: play, record, passthru
+sanalogPin~~1~N~Analog pin for volume & brightness pot control
+saudioLedPin~~1~N~Pin for audio controlled output lights
+saudioClockPin~~1~N~Pin for audio controlled LED bar clock
+saudioDataPin~~1~N~Pin for audio controlled LED bar data
+switchModePin~~1~N~Pin to use pot for brightness (hi) or vol (lo)
 usePing~1~0~C~Use ping
 )~";

@@ -13,6 +13,10 @@
 //
 // s60sc 2021, 2023
 
+#if ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3, 0, 3)
+#error Must be compiled with arduino-esp32 core v3.0.3 or higher
+#endif
+
 #include "appGlobals.h"
 
 void setup() {
