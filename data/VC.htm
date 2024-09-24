@@ -58,7 +58,7 @@
       }
       
       .hidden {
-        display: none
+        display: none;
       }
       
       progress {
@@ -121,6 +121,7 @@
       
       .tab button.disabled {
         cursor: default;
+        pointer-events: none;  
         background: var(--itemInactive)
       }
       
@@ -493,6 +494,11 @@
         margin-bottom: var(--inputSize);
       }
 
+      #micLevel {
+        height: var(--buttonSize);
+        width: calc(var(--buttonSize) * 4);
+      } 
+
     </style>
   </head>
   
@@ -515,8 +521,10 @@
            <button id="record" class="control-action" name="Record" value="2">Record</button>
          </td><td>
            <button id="play" class="control-action" name="Play" value="3">Play</button>
-         </td><td>
-           <button id="micRem" class="control-action" name="PC Mic" value="0">PC Mic</button>
+         </td><td style="text-align: left;">
+           <button id="spkrRem" value="0" style="display: inline-block;">🔈</button>
+           <button id="micRem" value="0" style="display: inline-block;">🎤</button>
+           <canvas id="micLevel"></canvas> 
          </td><td>
            <button id="output" class="download-action" value="5">Download</button>
          </td><td>
@@ -797,12 +805,12 @@
             </div> 
            </td></table>
          </td><td colspan="2">
-          <fieldset>           
+          <fieldset>
           <legend>Sample Rate</legend>   
             <input type="radio" name="Srate" value="8000">8000    
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input type="radio" name="Srate" value="11025">11025    
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input type="radio" name="Srate" value="16000" Checked>16000
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input type="radio" name="Srate" value="22050">22050
@@ -944,8 +952,10 @@
           else if (key == "refreshVal") refreshInterval = value * 1000; 
           else if (key == "clockUTC") { appClock = value; checkTime(value); }
           else if (key == "pinout") getConfig("01");
-          else if (key == "micRem") micAction(true);
-          else if (key == "play" || key == "passthru" || key == "record") buttonAction(key, value);
+          else if (key == "micRem") { value = micOrSpkrState(key); value ? runMic(0) : closeMic(0); }
+          else if (key == "spkrRem") { value = micOrSpkrState(key); value ? runSpkr(0) : closeSpkr(0); }
+          else if (key == "play") buttonAction(key, value); 
+          else if (key == "passthru" || key == "record") buttonAction(key, value);
           else if (key == "stopPlay") deactivateButton($('#play'));
           else if (key == "stopRec") deactivateButton($('#record'));
           else if (key == "Srate") setMaxFreq(fromUser); 
@@ -972,7 +982,7 @@
         $('#micI2S').checked = false;
         value == 1 ? $('#micI2S').checked = true : $('#ampI2S').checked = true;
       }
-      
+
       function setMaxFreq(fromUser = false) {
         // change frequency max limits and initial values 
         const srate = $('input[name="Srate"]:checked').value;
@@ -985,41 +995,33 @@
         });
         if (fromUser) sendControl("Srate", srate); 
       }
-      
+
       function activateButton(thisButton) {
         thisButton.classList.add("active");
         thisButton.classList.add('blinking');
-        thisButton.innerHTML = "Stop " + thisButton.getAttribute('name');
+        if (thisButton.hasAttribute("name")) thisButton.innerHTML = "Stop " + thisButton.getAttribute('name');
       }
-      
+
       function deactivateButton(thisButton) {
         thisButton.classList.remove("active");
         thisButton.classList.remove('blinking');
-        thisButton.innerHTML = thisButton.getAttribute('name');
+        if (thisButton.hasAttribute("name")) thisButton.innerHTML = thisButton.getAttribute('name');
       }
-      
-      async function micAction(changeState) {
-        sendControl('action', '6');
-        const thisButton = $('#micRem');
-        deactivateAllButtons();
-        if (changeState) {
-          const micActive = !isActive(thisButton);
-          micActive ? activateButton(thisButton) : deactivateButton(thisButton);
-          await sleep(200);
-          micRemState(micActive);
-          sendControl("micRem", micActive ? '1' : '0');
-        } else {
-          deactivateButton(thisButton);
-          sendControl("micRem", '0');
-        }
+
+      function micOrSpkrState(key) {
+        const thisButton = $('#'+key);
+        const thisActive = !isActive(thisButton);
+        thisActive ? activateButton(thisButton) : deactivateButton(thisButton);
+        sendControl(key, +thisActive);
+        return +thisActive;
       }
-      
+
       function deactivateAllButtons() {
         if (isActive($('#play'))) deactivateButton($('#play'));
         if (isActive($('#record'))) deactivateButton($('#record'));
         if (isActive($('#passthru'))) deactivateButton($('#passthru'));
       }
-      
+
       async function buttonAction(key, value) {
         sendControl('action', '6');
         const thisButton = $('#'+key);
@@ -1031,26 +1033,53 @@
           sendControl('action', value);
         }
       }
-      
-      function customInit() {
-        setMaxFreq();
-      }
-      
-      function closedTab(isClosed) {}
 
       function configStatus(refresh) {
         if (!refresh) loadStatus("");
       }
+
+      function closedTab(isClosed) {
+        // actions when page refreshed, closed or not in focus
+        deactivateButton($('#micRem'));
+        deactivateButton($('#spkrRem'));
+        if (isClosed) {
+          pageVisible = false;
+          pageVisible = false;
+          sendControl("micRem", '0');
+          sendControl("spkrRem", '0');
+        }
+      }
+
+      function processBuffer(bufferData) {
+        // app specific processing of buffer received from web socket
+        outputSpkr(bufferData); // ArrayBuffer containing PCM 16kHz audio data
+      }
+
+      function customWsMsg(data) {
+        // start / stop browser mic sending to app
+        const thisButton = $('#micRem');
+        if (data == "#M1") {
+          activateButton(thisButton);
+          runMic(0);
+        } else if (data == "#M0") {
+          deactivateButton(thisButton);
+          closeMic(0);
+        }
+      }
+
+      function customInit() {
+        setMaxFreq();
+      }
       
-      /****************************************************/
-      
+      /***********************************************************/
+
       // common script config
       const doCustomInit = true;
       const doInitWebSocket = true;
       const doLoadStatus = false;
       const doRefreshTimer = false;
       const doCustomSync = false;
-      const doHeartbeat = true;
+      const doHeartbeat = false;
  
       const scriptFiles = ['/web?common.js', 'C:/MyStuff/Arduino/CommonMaster/Latest/common.js']; 
       for (let i = 0; i < scriptFiles.length; i++) {
