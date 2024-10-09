@@ -96,16 +96,13 @@ static uint8_t wavHeader[WAV_HDR_LEN] = { // WAV header template
 
 void applyVolume() {
   // determine required volume setting
-LOG_DBG("ampVol %d", ampVol);
   int8_t adjVol = ampVol * 2; // use web page setting
 #ifdef ISVC
   adjVol = checkPotVol(adjVol);  // use potentiometer setting if available
 #endif
-LOG_DBG("adjVol %d", adjVol);
   if (adjVol) {
     // increase or reduce volume, 6 is unity eg midpoint of pot / web slider
     adjVol = adjVol > 5 ? adjVol - 5 : adjVol - 7; 
-LOG_DBG("final %d", adjVol);
     // apply volume control to samples
     for (int i = 0; i < DMA_BUFF_LEN; i++) {   
       // apply volume control 
@@ -379,9 +376,9 @@ static void predefPins() {
 #if defined(I2S_SD)
   char micPin[3];
   sprintf(micPin, "%d", I2S_SD);
-  updateStatus("micSWsPin", micPin);
-  sprintf(micPin, "%d", I2S_WS);
   updateStatus("micSdPin", micPin);
+  sprintf(micPin, "%d", I2S_WS);
+  updateStatus("micSWsPin", micPin);
   sprintf(micPin, "%d", I2S_SCK);
   updateStatus("micSckPin", micPin);
 #endif
