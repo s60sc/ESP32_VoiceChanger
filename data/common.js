@@ -54,7 +54,7 @@
 
         // define websocket handling
         function initWebSocket(index) {
-          if (wsSkt[index] == null) {
+          if (wsSkt[index] == null && wsServers[index] != null) {
             wsSkt[index] = new WebSocket(wsServers[index]);
             wsSkt[index].binaryType = "arraybuffer";
             wsSkt[index].onopen = function(event) {
@@ -513,8 +513,10 @@
             if (document.visibilityState === 'hidden') {
               // User has switched tabs or minimized the window
               wsServers.forEach((element, index) => {
-                sendWsMsg('K', index);
-                wsSkt[index].close;
+                if (wsServers[index] != null) {
+                  sendWsMsg('K', index);
+                  wsSkt[index].close;
+                }
               });
               closedTab(true); // app specific
             } else {
