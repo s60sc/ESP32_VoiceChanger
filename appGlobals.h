@@ -7,6 +7,8 @@
 
 /******************** User modifiable defines *******************/
 
+#define INCLUDE_RTSP true // allow RTSP (see rtspVC.cpp)
+
 #define ALLOW_SPACES false // set true to allow whitespace in configs.txt key values
 
 // web server ports
@@ -26,7 +28,7 @@
 #define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.6"
+#define APP_VER "1.7"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -86,7 +88,6 @@
 #define SERVO_PRI 1
 #define LOG_PRI 1
 #define BATT_PRI 1
-#define IDLEMON_PRI 5
 
 #define FILE_EXT "wav"
 #define DMA_BUFF_LEN 1024 // used for I2S buffer size
@@ -105,12 +106,13 @@ void applyFilters();
 void applyVolume();
 void browserMicInput(uint8_t* wsMsg, size_t wsMsgLen);
 int8_t checkPotVol(int8_t adjVol);
+void closeI2S();
 void displayAudioLed(int16_t audioSample);
 uint8_t getBrightness();
 void ledBarGauge(float level);
 void prepAudio();
 void prepPeripherals();
-void closeI2S();
+void prepRTSP();
 void setI2Schan(int whichChan);
 void setLamp(uint8_t lampVal);
 void setupAudioLed();
@@ -202,3 +204,6 @@ extern uint8_t* audioBuffer; // store recording
 extern volatile audioAction THIS_ACTION;
 extern bool ledBarUse; // true to MY9921 led bar
 extern int lampPin; // if useLamp is true
+extern bool RTSPAudio;
+extern int16_t* RTSPAudioBuffer;
+extern size_t RTSPAudioBytes;

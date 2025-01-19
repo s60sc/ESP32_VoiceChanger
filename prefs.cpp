@@ -30,7 +30,6 @@
 static fs::FS fp = STORAGE;
 static std::vector<std::vector<std::string>> configs;
 static Preferences prefs; 
-char* jsonBuff = NULL;
 static char appId[16];
 static char variable[FILE_NAME_LEN] = {0};
 static char value[IN_FILE_NAME_LEN] = {0};
@@ -64,7 +63,7 @@ void reloadConfigs() {
 #if INCLUDE_MQTT
   if (mqtt_active) {
     buildJsonString(1);
-    mqttPublishPath("config", jsonBuff);
+    mqttPublishPath("status", jsonBuff);
   }
 #endif
 }
@@ -237,7 +236,7 @@ void updateStatus(const char* variable, const char* _value, bool fromUser) {
   if (mqtt_active) {
     char buff[(IN_FILE_NAME_LEN * 2)];
     snprintf(buff, IN_FILE_NAME_LEN * 2, "%s=%s", variable, value);
-    mqttPublish(buff);
+    mqttPublishPath("state", buff);
   }
 #endif
 
@@ -359,7 +358,10 @@ void updateStatus(const char* variable, const char* _value, bool fromUser) {
     saveConfigVect();
   } else {
     res = updateAppStatus(variable, value, fromUser);
-    if (!res) LOG_VRB("Unrecognised config: %s", variable);
+    if (!res) {
+      if (fromUser) LOG_WRN("Trying to config %s but feature not included", variable);
+      else LOG_VRB("Unrecognised config: %s", variable);
+    }
   }
   if (res) updateConfigVect(variable, value);  
 }
@@ -381,7 +383,7 @@ void buildJsonString(uint8_t filter) {
     char timeBuff[20];
     strftime(timeBuff, 20, "%Y-%m-%d %H:%M:%S", localtime(&currEpoch));
     p += sprintf(p, "\"clock\":\"%s\",", timeBuff);
-    formatElapsedTime(timeBuff, millis());
+    formatElapsedTime(timeBuff, millis()); // rolls over after 49.7 days due to max uint32
     p += sprintf(p, "\"up_time\":\"%s\",", timeBuff);   
     p += sprintf(p, "\"free_heap\":\"%s\",", fmtSize(ESP.getFreeHeap()));    
     p += sprintf(p, "\"wifi_rssi\":\"%i dBm\",", WiFi.RSSI() );  

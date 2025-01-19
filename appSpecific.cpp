@@ -297,7 +297,7 @@ esp_err_t appSpecificWebHandler(httpd_req_t* req, const char* variable, const ch
       if ((THIS_ACTION != STOP_ACTION) && (xSemaphoreTake(audioSemaphore, pdMS_TO_TICKS(200)) == pdTRUE)) xTaskNotifyGive(audioHandle);
       else LOG_WRN("Waiting for previous action to terminate");
     }
-  }
+  } else return ESP_FAIL;
   return ESP_OK;
 }
 

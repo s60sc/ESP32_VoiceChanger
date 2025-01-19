@@ -78,41 +78,51 @@ static void displayLog(httpd_req_t *req) {
   } 
 }
 
+bool checkAuth(httpd_req_t* req) {
+  // check if authentication is required
+  if (strlen(Auth_Name)) {
+    // authentication required
+    size_t credLen = strlen(Auth_Name) + strlen(Auth_Pass) + 2; // +2 for colon & terminator
+    char credentials[credLen];
+    snprintf(credentials, credLen, "%s:%s", Auth_Name, Auth_Pass);
+    size_t authLen = httpd_req_get_hdr_value_len(req, "Authorization") + 1;
+    if (authLen) {
+      // check credentials supplied are valid
+      char auth[authLen];
+      httpd_req_get_hdr_value_str(req, "Authorization", auth, authLen);
+      if (!strstr(auth, encode64(credentials))) authLen = 0; // credentials not valid
+    }
+    if (!authLen) {
+      // not authenticated
+      httpd_resp_set_hdr(req, "WWW-Authenticate", "Basic");
+      httpd_resp_set_status(req, "401 Unauthorised");
+      httpd_resp_sendstr(req, NULL);
+      return false;
+    }
+  }
+  return true; // authentication ok or not required
+}
+
 static esp_err_t indexHandler(httpd_req_t* req) {
   strcpy(inFileName, INDEX_PAGE_PATH);
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
   // first check if a startup failure needs to be reported
   if (strlen(startupFailure)) {
-    httpd_resp_set_type(req, "text/html");                        
-    return httpd_resp_sendstr(req, startupFailure);
+    httpd_resp_set_type(req, "text/html");                   
+    httpd_resp_sendstr_chunk(req, failPageS_html);
+    httpd_resp_sendstr_chunk(req, startupFailure);
+    httpd_resp_sendstr_chunk(req, failPageE_html);
+    httpd_resp_sendstr_chunk(req, NULL);
   }
   // Show wifi wizard if not setup, using access point mode  
   if (!fp.exists(INDEX_PAGE_PATH) && WiFi.status() != WL_CONNECTED) {
     // Open a basic wifi setup page
-    httpd_resp_set_type(req, "text/html");                             
-    return httpd_resp_sendstr(req, setupPage_html);
-  } else {
-    // first check if authentication is required
-    if (strlen(Auth_Name)) {
-      // authentication required
-      size_t credLen = strlen(Auth_Name) + strlen(Auth_Pass) + 2; // +2 for colon & terminator
-      char credentials[credLen];
-      snprintf(credentials, credLen, "%s:%s", Auth_Name, Auth_Pass);
-      size_t authLen = httpd_req_get_hdr_value_len(req, "Authorization") + 1;
-      if (authLen) {
-        // check credentials supplied are valid
-        char auth[authLen];
-        httpd_req_get_hdr_value_str(req, "Authorization", auth, authLen);
-        if (!strstr(auth, encode64(credentials))) authLen = 0; // credentials not valid
-      }
-      if (!authLen) {
-        // not authenticated
-        httpd_resp_set_hdr(req, "WWW-Authenticate", "Basic");
-        httpd_resp_set_status(req, "401 Unauthorised");
-        return httpd_resp_sendstr(req, NULL);
-      }
-    }
-  }
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    return httpd_resp_send(req, (const char*)setupPage_html_gz, setupPage_html_gz_len);
+  } else if (!checkAuth(req)) return ESP_OK; // check if authentication required & passed
+
+
   return fileHandler(req);
 }
 
@@ -200,8 +210,8 @@ static esp_err_t controlHandler(httpd_req_t *req) {
     }
     if (!strcmp(variable, "startOTA")) snprintf(inFileName, IN_FILE_NAME_LEN - 1, "%s/%s", DATA_DIR, value); 
     else {
-      updateStatus(variable, value);
-      appSpecificWebHandler(req, variable, value); 
+      // if not handled by appSpecificWebHandler(), try updateStatus()
+      if (appSpecificWebHandler(req, variable, value) == ESP_FAIL) updateStatus(variable, value);
     }
   }
   httpd_resp_sendstr(req, NULL); 
@@ -337,6 +347,27 @@ esp_err_t uploadHandler(httpd_req_t *req) {
     }
   }
   return res;
+}
+
+static esp_err_t setupHandler(httpd_req_t *req) {
+  // Scan for WiFi networks
+  int w = WiFi.scanNetworks();
+  // Start building the JSON string
+  char* p = jsonBuff;
+  p += sprintf(p, "{\"networks\":[");
+  // Populate the JSON string with scan results
+  for (int i = 0; i < w; ++i) {
+    p += sprintf(p, "{\"ssid\":\"%s\",\"encryption\":\"%s\",\"strength\":\"%ld\"},", WiFi.SSID(i).c_str(), getEncType(i), WiFi.RSSI(i));
+  }
+  // remove final comma and close the JSON array
+  p += sprintf(p-1, "]}");
+  // Set the response type to JSON and send JSON
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+  httpd_resp_sendstr(req, jsonBuff);
+  return ESP_OK;
 }
 
 void showHttpHeaders(httpd_req_t *req) {
@@ -519,6 +550,7 @@ void startWebServer() {
   httpd_uri_t uploadUri = {.uri = "/upload", .method = HTTP_POST, .handler = uploadHandler, .user_ctx = NULL};
   httpd_uri_t sustainUri = {.uri = "/sustain", .method = HTTP_GET, .handler = appSpecificSustainHandler, .user_ctx = NULL};
   httpd_uri_t checkUri = {.uri = "/sustain", .method = HTTP_HEAD, .handler = appSpecificSustainHandler, .user_ctx = NULL};
+  httpd_uri_t wifiUri = {.uri = "/wifi", .method = HTTP_GET, .handler = setupHandler, .user_ctx = NULL};
 
   if (res == ESP_OK) {
     httpd_register_uri_handler(httpServer, &indexUri);
@@ -530,6 +562,7 @@ void startWebServer() {
     httpd_register_uri_handler(httpServer, &uploadUri);
     httpd_register_uri_handler(httpServer, &sustainUri);
     httpd_register_uri_handler(httpServer, &checkUri);
+    httpd_register_uri_handler(httpServer, &wifiUri);
     httpd_register_err_handler(httpServer, HTTPD_404_NOT_FOUND, customOrNotFoundHandler);
 
     LOG_INF("Starting web server on port: %u", useHttps ? HTTPS_PORT : HTTP_PORT);

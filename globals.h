@@ -3,8 +3,15 @@
 // s60sc 2021, 2022
 
 #include "esp_arduino_version.h"
+
+#if ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3, 1, 1)
+#error Must be compiled with arduino-esp32 core v3.1.1 or higher
+#endif
+
 #pragma once
 // to compile with -Wall -Werror=all -Wextra
+//#pragma GCC diagnostic error "-Wformat=2"
+#pragma GCC diagnostic ignored "-Wformat-y2k"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 //#pragma GCC diagnostic ignored "-Wunused-variable"
@@ -22,7 +29,7 @@
 #include "ping/ping_sock.h"
 #include <Preferences.h>
 #include <regex>
-#if !CONFIG_IDF_TARGET_ESP32C3
+#if (!CONFIG_IDF_TARGET_ESP32C3 && !CONFIG_IDF_TARGET_ESP32S2)
 #include <SD_MMC.h>
 #endif
 #include <LittleFS.h>
@@ -97,8 +104,10 @@ void buildJsonString(uint8_t filter);
 bool calcProgress(int progressVal, int totalVal, int percentReport, uint8_t &pcProgress);
 bool changeExtension(char* fileName, const char* newExt);
 bool checkAlarm();
+bool checkAuth(httpd_req_t* req);
 bool checkDataFiles();
 bool checkFreeStorage();
+bool checkI2Cdevice(const char* devName);
 void checkMemory(const char* source = "");
 uint32_t checkStackUse(TaskHandle_t thisTask, int taskIdx);
 void debugMemory(const char* caller);
@@ -127,6 +136,7 @@ const char* getEncType(int ssidIndex);
 void getExtIP();
 time_t getEpoch();
 size_t getFreeStorage();
+uint32_t getFrequency();
 bool getLocalNTP();
 float getNTCcelsius(uint16_t resistance, float oldTemp);
 void goToSleep(int wakeupPin, bool deepSleep);
@@ -141,6 +151,8 @@ void logPrint(const char *fmtStr, ...);
 void logSetup();
 void OTAprereq();
 bool parseJson(int rxSize);
+bool prepFreq(int maxFreq, int sampleInterval);
+bool prepI2C();
 void prepPeripherals();
 void prepSMTP();
 bool prepTelegram();
@@ -159,6 +171,7 @@ void replaceChar(char* s, char c, char r);
 void reset_log();
 void resetWatchDog();
 bool retrieveConfigVal(const char* variable, char* value);
+void runTaskStats();
 esp_err_t sendChunks(File df, httpd_req_t *req, bool endChunking = true);
 void setFolderName(const char* fname, char* fileName);
 void setPeripheralResponse(const byte pinNum, const uint32_t responseData);
@@ -187,7 +200,7 @@ bool wsAsyncSendText(const char* wsData);
 void startMqttClient();  
 void stopMqttClient();  
 void mqttPublish(const char* payload);
-void mqttPublishPath(const char* suffix, const char* payload);
+void mqttPublishPath(const char* suffix, const char* payload, const char *device = "sensor");
 // telegram.cpp
 bool getTgramUpdate(char* response);
 bool sendTgramMessage(const char* info, const char* item, const char* parseMode);
@@ -297,8 +310,11 @@ extern char messageLog[];
 extern uint16_t mlogEnd;
 extern bool timeSynchronized;
 extern bool monitorOpen; 
-extern const char* setupPage_html;
+extern const uint8_t setupPage_html_gz[];
+extern const size_t setupPage_html_gz_len;
 extern const char* otaPage_html;
+extern const char* failPageS_html;
+extern const char* failPageE_html;
 extern char startupFailure[];
 extern time_t currEpoch;
 extern bool RCactive;
@@ -309,6 +325,10 @@ extern UBaseType_t uxHighWaterMarkArr[];
 extern int sdMinCardFreeSpace; // Minimum amount of card free Megabytes before freeSpaceMode action is enabled
 extern int sdFreeSpaceMode; // 0 - No Check, 1 - Delete oldest dir, 2 - Upload to ftp and then delete folder on SD 
 extern bool formatIfMountFailed ; // Auto format the file system if mount failed. Set to false to not auto format.
+
+// I2C pins
+extern int I2Csda;
+extern int I2Cscl;
 
 #define HTTP_METHOD_STRING(method) \
   (method == HTTP_DELETE) ? "DELETE" : \

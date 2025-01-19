@@ -1,8 +1,7 @@
 # ESP32-VoiceChanger
 
-ESP32 application to change a voice to be eg stormtrooper or dalek sounding, either in real time for cosplay or as a recording. Recordings can be downloaded to the browser as a WAV file
-for playback on a media player.
-Can be hosted on a ESP32 or ESP32-S3.
+ESP32 application to change a voice to be eg stormtrooper or dalek sounding, either in real time for cosplay or as a recording. Recordings can be downloaded to the browser as a WAV file for playback on a media player. Audio can be streamed to another device using [RTSP](#rtsp).
+App can be hosted on a ESP32 or ESP32-S3.
 
 
 ## Installation
@@ -24,7 +23,7 @@ Optionally LEDs and MY9221 based LED bars can be connected that will flash accor
 A potentiometer can also be connected to control amplifier volume and LED brightness.
 To enable recording the ESP32 needs to host PSRAM.
 
-The types of microphone and amplifier that can be connected are combinations of I2S (mic & amp) and PDM (mic)
+The types of microphone and amplifier that can be connected are combinations of I2S (mic & amp) and PDM (mic).
 At least one device must be I2S as the ESP32 only supports PDM on one I2S peripheral. 
 Cheap I2S devices that have been successfully tested with this app are:
 * INMP441 I2S microphone
@@ -114,7 +113,17 @@ Example configuration for dalek style voice:
 
 If a PC or phone has a built in microphone this can accessed from the browser and streamed to the ESP32 in place of the local microphone. Press the Microphone icon which will blink when active and display a signal level bar. Due to Windows and browser security constraints this requires some steps to enable it to be used, see notes in file `audio.cpp`.
 
-If a PC or phone has a built in speaker this can accessed from the browser to play audio from the ESP32 in place of the local speaker. Press the Speaker icon which will blink when active. The amplifier volume slider does not apply to the browser speaker, use the device volume control.
-
+If a PC or phone has a built in speaker this can accessed from the browser to play audio from the ESP32 in place of the local speaker. Press the Speaker icon which will blink when active. The amplifier volume slider does not apply to the browser speaker, use the device volume control.  
 
 Browser functions only tested on Chrome.
+
+## RTSP
+
+The audio output can also be streamed using RTSP to an another device with a speaker (eg phone) so that the ESP only needs to host a microphone and audio separation is improved.  
+
+To use RTSP, a separate [library](https://github.com/rjsachse/ESP32-RTSPServer) needs to be installed and in `appGlobals.h` set `#define INCLUDE_RTSP` to `true`.
+Use a suitable phone app such as VLC to connect to the RTSP stream on URL: `rtsp://<esp_ip>:554`  
+
+If the sample rate is changed the ESP needs to be rebooted to apply the new sample rate to RTSP.
+
+

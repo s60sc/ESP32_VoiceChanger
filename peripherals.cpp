@@ -95,6 +95,8 @@ int waitTime;
 int stickzPushPin; // digital pin connected to switch output
 int stickXpin; // analog pin connected to X output
 int stickYpin; // analog pin connected to Y output
+int relayPin;
+bool relayMode;
 
 // MY9221 LED Bar pins
 int ledBarClock;
@@ -218,8 +220,8 @@ static void prepServos() {
 */
 
 #if INCLUDE_DS18B20
-#include <OneWire.h> 
-#include <DallasTemperature.h>
+#include <OneWire.h> // https://github.com/PaulStoffregen/OneWire
+#include <DallasTemperature.h> // https://github.com/milesburton/Arduino-Temperature-Control-Library
 #endif
 
 // configuration
@@ -353,7 +355,7 @@ static void setupLamp() {
     setLamp(0);
     LOG_INF("Setup PWM Lamp Led on pin %d", lampPin);
 #endif
-  } else LOG_WRN("No Lamp Led pin defined");
+  }
   if (lightsRCpin > 1) pinMode(lightsRCpin, OUTPUT);
 }
 
@@ -421,6 +423,7 @@ static void prepPIR() {
       LOG_WRN("No PIR pin defined");
     }
   }
+  if (relayPin) pinMode(relayPin, OUTPUT);
 }
 
 /********************************* joystick *************************************/
