@@ -7,7 +7,7 @@
 
 /******************** User modifiable defines *******************/
 
-#define INCLUDE_RTSP true // allow RTSP (see rtspVC.cpp)
+#define INCLUDE_RTSP false // allow RTSP (see rtspVC.cpp)
 
 #define ALLOW_SPACES false // set true to allow whitespace in configs.txt key values
 
