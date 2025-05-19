@@ -33,6 +33,11 @@ bool USE_POT = false; // whether external volume / brightness control potentiome
 volatile audioAction THIS_ACTION = NO_ACTION;
 SemaphoreHandle_t audioSemaphore = NULL; // disables interrupts whilst state change occuring
 
+// n/a
+bool streamVid = false;
+bool streamAud = false;
+bool streamSrt = false;
+
 static inline void IRAM_ATTR wakeTask(TaskHandle_t thisTask) {
   // utility function to resume task from pin interrupt
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;

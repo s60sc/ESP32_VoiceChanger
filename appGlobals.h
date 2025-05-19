@@ -18,7 +18,6 @@
 /*********************** Fixed defines leave as is ***********************/ 
 /** Do not change anything below here unless you know what you are doing **/
 
-//#define DEV_ONLY // leave commented out
 #define STATIC_IP_OCTAL "152" // dev only
 #define DEBUG_MEM false // leave as false
 #define FLUSH_DELAY 0 // for debugging crashes
@@ -28,7 +27,7 @@
 #define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.7"
+#define APP_VER "1.7.1"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -56,7 +55,7 @@
 #define ISVC // VC specific code in generics
 
 // to determine if newer data files need to be loaded
-#define CFG_VER 4
+#define CFG_VER 5
 
 #ifdef CONFIG_IDF_TARGET_ESP32S3 
 #define SERVER_STACK_SIZE (1024 * 8)
@@ -200,10 +199,30 @@ extern bool USE_POT; // whether external volume control potentiometer being used
 extern uint32_t SAMPLE_RATE; // audio rate in Hz
 extern int16_t* sampleBuffer; // audio samples output buffer
 extern const size_t sampleBytes;
-extern uint8_t* audioBuffer; // store recording
+extern uint8_t* audioBuffer; // streaming
+extern size_t audioBytes;
 extern volatile audioAction THIS_ACTION;
-extern bool ledBarUse; // true to MY9921 led bar
+extern bool ledBarUse; // true for MY9921 led bar
 extern int lampPin; // if useLamp is true
-extern bool RTSPAudio;
-extern int16_t* RTSPAudioBuffer;
-extern size_t RTSPAudioBytes;
+extern uint8_t* recAudioBuffer; // store recording
+extern size_t recAudioBytes;
+
+// RTSP 
+extern int quality; // Variable to hold quality for RTSP frame
+extern bool rtspVideo;
+extern bool rtspAudio;
+extern bool rtspSubtitles;
+extern int rtspPort;
+extern uint16_t rtpVideoPort;
+extern uint16_t rtpAudioPort;
+extern uint16_t rtpSubtitlesPort;
+extern char RTP_ip[];
+extern uint8_t rtspMaxClients;
+extern uint8_t rtpTTL;
+extern char RTSP_Name[];
+extern char RTSP_Pass[];
+
+// n/a
+extern bool streamVid;
+extern bool streamAud;
+extern bool streamSrt;
