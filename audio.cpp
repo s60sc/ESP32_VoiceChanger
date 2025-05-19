@@ -178,6 +178,10 @@ size_t updateWavHeader() {
 
 #ifdef ISVC
 
+#if !INCLUDE_RTSP
+bool rtspAudio = false;
+#endif
+
 static size_t micInput() {
   // get input from browser mic or else esp mic
   size_t bytesRead = (micRem) ? wsBufferLen : espMicInput();
