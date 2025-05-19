@@ -10,7 +10,7 @@
 
 #pragma once
 
-#define DEV_ONLY // leave commented out
+//#define DEV_ONLY // leave commented out
 #ifdef DEV_ONLY
 // to compile with -Wall -Werror=all -Wextra
 #pragma GCC diagnostic error "-Wformat=2"
