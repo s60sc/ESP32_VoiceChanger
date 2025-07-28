@@ -27,7 +27,7 @@
 #define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.7.1"
+#define APP_VER "1.8"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -96,9 +96,11 @@
 #define MIC_GAIN_CENTER 3 // mid point
 
 
+
 /******************** Function declarations *******************/
 
 enum audioAction {NO_ACTION, UPDATE_CONFIG, RECORD_ACTION, PLAY_ACTION, PASS_ACTION, WAV_ACTION, STOP_ACTION};
+enum stepperModel {BYJ_48, BIPOLAR_8mm};
 
 // global app specific functions
 void applyFilters();

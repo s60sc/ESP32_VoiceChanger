@@ -17,8 +17,10 @@
 
 void setup() {
   logSetup();
-  // prep SD card storage & load saved user configuration
+  // prep flash storage & load saved user configuration
   if (startStorage()) loadConfig();
+  if (!psramFound()) snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Need PSRAM to be enabled");
+
 #ifdef DEV_ONLY
   devSetup();
 #endif
