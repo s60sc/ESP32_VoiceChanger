@@ -378,7 +378,10 @@ void updateStatus(const char* variable, const char* _value, bool fromUser) {
   } else {
     res = updateAppStatus(variable, value, fromUser);
     if (!res) {
-      if (fromUser) LOG_WRN("Unable to config %s as required cpp file not included", variable);
+      if (fromUser) {
+        updateConfigVect(variable, value); // in case value previously set in different compilation state
+        LOG_WRN("Unable to use %s as required cpp file not included", variable);
+      }
       else LOG_VRB("Unrecognised config: %s", variable);
     }
   }
@@ -536,6 +539,14 @@ bool loadConfig() {
     loadPrefs(); // overwrites any corresponding entries in config
     // load variables from stored config vector
     reloadConfigs();
+#if INCLUDE_CERTS
+    loadCerts();
+#else
+  if (useHttps) {
+    LOG_WRN("Need to compile with INCLUDE_CERTS true to use HTTPS");
+    useHttps = false;
+  }
+#endif
     debugMemory("loadConfig");
     return true;
   }

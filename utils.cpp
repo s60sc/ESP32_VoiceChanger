@@ -26,6 +26,7 @@ static void initBrownout(void);
 int wakePin; // if wakeUse is true
 bool wakeUse = false; // true to allow app to sleep and wake
 char* jsonBuff = NULL;
+char portFwd[6] = "";
 
 /************************** Wifi **************************/
 
@@ -72,11 +73,10 @@ static void setupMdnsHost() {
   snprintf(mdnsName, MAX_IP_LEN, "%.*s", MAX_IP_LEN - 1, hostName);
   if (MDNS.begin(mdnsName)) {
     // Add service to MDNS
-    MDNS.addService("http", "tcp", HTTP_PORT);
-    MDNS.addService("https", "tcp", HTTPS_PORT);
-    //MDNS.addService("ws", "udp", 83);
-    //MDNS.addService("ftp", "tcp", 21);    
-    LOG_INF("mDNS service: http://%s.local", mdnsName);
+    useHttps ? MDNS.addService("https", "tcp", HTTPS_PORT) : MDNS.addService("http", "tcp", HTTP_PORT);
+    MDNS.addService("ws", "udp", 83);
+    MDNS.addService("ftp", "tcp", 21);    
+    LOG_INF("mDNS service: http%s://%s.local", useHttps ? "s" : "", mdnsName);
   } else LOG_WRN("mDNS host: %s Failed", mdnsName);
   debugMemory("setupMdnsHost");
 }
@@ -118,7 +118,7 @@ static void onWiFiEvent(WiFiEvent_t event) {
     case ARDUINO_EVENT_WIFI_STA_STOP: LOG_INF("Wifi Station stopped %s", ST_SSID); break;
     case ARDUINO_EVENT_WIFI_AP_START: {
       if (strlen(AP_SSID) && !strcmp(WiFi.softAPSSID().c_str(), AP_SSID)) {
-        LOG_INF("Wifi AP SSID: %s started, use '%s://%s' to connect", WiFi.softAPSSID().c_str(), useHttps ? "https" : "http", WiFi.softAPIP().toString().c_str());
+        LOG_INF("Wifi AP SSID: %s started, use 'http%s://%s' to connect", WiFi.softAPSSID().c_str(), useHttps ? "s" : "", WiFi.softAPIP().toString().c_str());
         APstarted = true;
       }
       break;
@@ -866,13 +866,23 @@ void logLine() {
   logPrint(" \n");
 }
 
+int vprintfRedirect(const char* format, va_list args) {
+  // format esp_log() output for logPrint()
+  char buffer[256];
+  int len = vsnprintf(buffer, sizeof(buffer), format, args);
+  logPrint("%s", buffer);
+  return len;
+}
+
 void logSetup() {
   // prep logging environment
   Serial.begin(115200);
   Serial.setDebugOutput(DBG_ON);
   printf("\n\n");
   if (DEBUG_MEM) printf("init > Free: heap %lu\n", ESP.getFreeHeap()); 
-  if (!DBG_ON) esp_log_level_set("*", ESP_LOG_NONE); // suppress ESP_LOG_ERROR messages
+  if (DBG_ON) esp_log_level_set("*", DBG_LVL);
+  else esp_log_level_set("*", ESP_LOG_NONE); // suppress esp log messages
+  esp_log_set_vprintf(vprintfRedirect); // redirect esp_log output to app log
   if (crashLoop == MAGIC_NUM) snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Crash loop detected, check log %s", (brownoutStatus == 'B' || brownoutStatus == 'R') ? "(brownout)" : " ");
   crashLoop = MAGIC_NUM;
   logSemaphore = xSemaphoreCreateBinary(); // flag that log message formatted
@@ -903,6 +913,7 @@ void formatHex(const char* inData, size_t inLen) {
 
 const char* espErrMsg(esp_err_t errCode) {
   // convert esp error code to text
+  // https://github.com/espressif/esp-idf/blob/master/components/esp_common/include/esp_err.h
   static char errText[100];
   esp_err_to_name_r(errCode, errText, 100);
   return errText;
