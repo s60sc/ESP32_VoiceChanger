@@ -291,6 +291,7 @@
         border:2px solid var(--itemBorder);
         overflow:auto;
         background: var(--inputBackground);
+        white-space: pre-wrap;   /* preserves spaces, tabs, and newlines */
       }
     
       select {
@@ -826,17 +827,6 @@
      <div id="ShowLog" class="tabcontent">
       <br>
       <div class="grid-cols4">
-        <div class="input-group" style="grid-column: span 2">
-          <fieldset> 
-          <legend id="selectLog">Select Log</legend> 
-          <div>
-            <label title="Display RTC RAM log" for="rtcram">RTC RAM</label>
-            <input class="local" id="rtcram" type="radio" name="logType" value="0" checked>
-            <label title="Display Websocket log" for="websock">&nbsp;Websocket</label>
-            <input class="local" id="websock" type="radio" name="logType" value="1">
-          </div>
-          </fieldset>
-        </div>
         <div class="input-group" id="dbg-group" style="align-items: center; grid-column: span 2">
           <label for="dbgVerbose" class="header" title="Set verbose logging">Verbose:</label>
           <div class="switch">
@@ -844,6 +834,13 @@
             <label title="Outputs additional information to log" class="slider" for="dbgVerbose"></label>
           </div>
         </div>
+        <div>
+          <svg>
+            <rect class="buttonRect" tabindex="0"/>
+            <text id="showsys" class="midText">System</text>
+          </svg>
+        </div>
+        <br>
         <div style="grid-column: span 4"><br></div>
         <div>
           <svg>
@@ -932,8 +929,6 @@
       
       let refreshInterval = 30000; 
       let appClock = Math.ceil(Date.now() / 1000);
-      const appLogInit = 0;
-      const appHub = '/control?svg=1';
 
       function processStatus(dest, key, value, fromUser = true) {
         // process change to status value
@@ -944,10 +939,8 @@
             document.title = value;
             if (fromUser) sendControl(key, value);
           }
-          else if (key == "alertMsg") showAlert(value);
           else if (key == "clearLog") clearLog();
           else if (key == "refreshLog") getLog();
-          else if (key == "logType") { logType = value; sendControl(key, value); return; }
           else if (key == "reset") saveChanges();
           else if (key == "refreshVal") refreshInterval = value * 1000; 
           else if (key == "clockUTC") { appClock = value; checkTime(value); }
@@ -1080,8 +1073,9 @@
       const doRefreshTimer = false;
       const doCustomSync = false;
       const doHeartbeat = false;
+      const doInitSSE = false;
  
-      const scriptFiles = ['/web?common.js', 'C:/MyStuff/Arduino/CommonMaster/Latest/common.js']; 
+      const scriptFiles = ['/web?common.js', '../../CommonMaster/Latest/common.js'];
       for (let i = 0; i < scriptFiles.length; i++) {
         const scriptElement = document.createElement('script');
         scriptElement.src = scriptFiles[i];
