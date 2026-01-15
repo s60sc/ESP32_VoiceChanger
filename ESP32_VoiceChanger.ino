@@ -19,19 +19,16 @@ void setup() {
   logSetup();
   // prep flash storage & load saved user configuration
   if (startStorage()) loadConfig();
-  if (!psramFound()) snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Need PSRAM to be enabled");
+  if (!psramFound()) LOG_WRN("PSRAM not present - record and play not available");
 
 #ifdef DEV_ONLY
   devSetup();
 #endif
 
   // connect wifi or start config AP if router details not available
-  startWifi(); 
-  
-  startWebServer();
-  if (strlen(startupFailure)) LOG_ERR("%s", startupFailure);
-  else {
-    // start rest of services
+  startNetwork();
+  if (startWebServer()) {
+    // start app services
     setupAudioLed();
     prepPeripherals();
     setupVC();

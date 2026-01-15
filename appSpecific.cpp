@@ -386,7 +386,7 @@ AP_gw~~0~T~AP gateway
 allowAP~1~0~C~Allow simultaneous AP
 AP_Pass~~0~T~AP Password
 Auth_Name~~0~T~Optional user name for web page login
-Auth_Pass~~0~T~Optional user name for web page password
+Auth_Pass~~0~T~Optional web page password
 wifiTimeoutSecs~30~0~N~WiFi connect timeout (secs)
 timezone~GMT0~0~T~Timezone string: tinyurl.com/TZstring
 logType~0~99~N~Output log selection

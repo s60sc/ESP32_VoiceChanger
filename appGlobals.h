@@ -28,7 +28,7 @@
 #define USE_IP6 false
 
 #define APP_NAME "VoiceChanger" // max 15 chars
-#define APP_VER "1.9"
+#define APP_VER "1.10"
 
 #define HTTP_CLIENTS 2 // http, ws
 #define MAX_STREAMS 0
@@ -36,7 +36,7 @@
 #define FILE_NAME_LEN 64
 #define IN_FILE_NAME_LEN 128
 #define JSON_BUFF_LEN (2 * 1024) // set big enough to hold json string
-#define MAX_CONFIGS 80 // > number of entries in configs.txt
+#define MAX_CONFIGS 85 // > number of entries in configs.txt
 #define GITHUB_PATH "/s60sc/ESP32-VoiceChanger/main"
 
 #define STORAGE LittleFS // One of LittleFS or SD_MMC
@@ -56,7 +56,7 @@
 #define ISVC // VC specific code in generics
 
 // to determine if newer data files need to be loaded
-#define CFG_VER 6
+#define CFG_VER 7
 
 #ifdef CONFIG_IDF_TARGET_ESP32S3 
 #define SERVER_STACK_SIZE (1024 * 8)

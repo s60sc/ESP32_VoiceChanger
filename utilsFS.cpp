@@ -23,16 +23,20 @@ int sdMinCardFreeSpace = 100; // Minimum amount of card free Megabytes before sd
 int sdFreeSpaceMode = 1; // 0 - No Check, 1 - Delete oldest dir, 2 - Upload oldest dir to FTP/HFS and then delete on SD 
 bool formatIfMountFailed = true; // Auto format the file system if mount failed. Set to false to not auto format.
 static bool use1bitMode = true;
-static fs::FS fp = STORAGE;
 #if (!CONFIG_IDF_TARGET_ESP32C3 && !CONFIG_IDF_TARGET_ESP32S2)
 static int sdmmcFreq = BOARD_MAX_SDMMC_FREQ; // board specific default SD_MMC speed
 #endif
+
+enum fsInd {SDMMC, LITTLEFS, SPIFFSS, NONE};
+static fsInd thisFS = NONE; 
+static const char* fsTypes[] = {"SD_MMC", "LittleFS", "SPIFFS"};
+static const char* fsPaths[] = {"/sdcard", "/littlefs", "/spiffs"};
 
 // hold sorted list of filenames/folders names in order of newest first
 static std::vector<std::string> fileVec;
 static auto currentDir = "/~current";
 static auto previousDir = "/~previous";
-static char fsType[10] = {0};
+
 
 static void infoSD() {
 #if (!CONFIG_IDF_TARGET_ESP32C3 && !CONFIG_IDF_TARGET_ESP32S2)
@@ -76,25 +80,40 @@ static bool prepSD_MMC() {
   digitalWrite(4, 0); // set lamp pin fully off as sd_mmc library still initialises pin 4 in 1 line mode
 #endif 
   if (res) {
-    fp.mkdir(DATA_DIR);
+    STORAGE.mkdir(DATA_DIR);
     infoSD();
   } else LOG_WRN("SD card mount failed");
 #endif
   return res;
 }
 
+static void fileModifiedDate(const char* fileName, char* timebuf, size_t buflen) {
+  // return file last modified date
+  timebuf[0] = 0;
+  struct stat st;
+  if (stat(fileName, &st) == 0) {
+    struct tm tm;
+    gmtime_r(&st.st_mtime, &tm);
+    strftime(timebuf, buflen, "%d %b %Y %H:%M:%S", &tm);
+  } else LOG_WRN("%s not found\n", fileName);
+}
+
 static void listFolder(const char* rootDir) { 
   // list contents of folder
   LOG_INF("Sketch size %s", fmtSize(ESP.getSketchSize()));    
-  File root = fp.open(rootDir);
+  File root = STORAGE.open(rootDir);
   File file = root.openNextFile();
+  char fPath[FILE_NAME_LEN];
+  char timebuf[30] = {0};
   while (file) {
-    LOG_INF("File: %s, size: %s", file.path(), fmtSize(file.size()));
+    sprintf(fPath, "%s%s", fsPaths[thisFS], file.path());
+    fileModifiedDate(fPath, timebuf, sizeof(timebuf));
+    LOG_INF("File: %s, size: %s, date %s", file.path(), fmtSize(file.size()), timebuf);
     file = root.openNextFile();
   }
   char totalBytes[20];
   strcpy(totalBytes, fmtSize(STORAGE.totalBytes()));
-  LOG_INF("%s: %s used of %s", fsType, fmtSize(STORAGE.usedBytes()), totalBytes);
+  LOG_INF("%s: %s used of %s", fsTypes[thisFS], fmtSize(STORAGE.usedBytes()), totalBytes);
 }
 
 bool startStorage() {
@@ -102,7 +121,7 @@ bool startStorage() {
   bool res = false;
 #if (!CONFIG_IDF_TARGET_ESP32C3 && !CONFIG_IDF_TARGET_ESP32S2)
   if ((fs::SDMMCFS*)&STORAGE == &SD_MMC) {
-    strcpy(fsType, "SD_MMC");
+    thisFS = SDMMC;
     res = prepSD_MMC();
     if (res) listFolder(DATA_DIR);
     else snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Check SD card inserted");
@@ -111,16 +130,16 @@ bool startStorage() {
   }
 #endif
   // One of SPIFFS or LittleFS
-  if (!strlen(fsType)) {
+  if (thisFS == NONE) {
 #ifdef _SPIFFS_H_
     if ((fs::SPIFFSFS*)&STORAGE == &SPIFFS) {
-      strcpy(fsType, "SPIFFS");
+      thisFS = SPIFFSS;
       res = SPIFFS.begin(formatIfMountFailed);
     }
 #endif
 #ifdef _LITTLEFS_H_
     if ((fs::LittleFSFS*)&STORAGE == &LittleFS) {
-      strcpy(fsType, "LittleFS");
+      thisFS = LITTLEFS;
       res = LittleFS.begin(formatIfMountFailed);
       // create data folder if not present
       if (res) LittleFS.mkdir(DATA_DIR);
@@ -128,11 +147,11 @@ bool startStorage() {
 #endif
     if (res) {  
       // list details of files on file system
-      const char* rootDir = !strcmp(fsType, "LittleFS") ? DATA_DIR : "/";
+      const char* rootDir = thisFS == LITTLEFS ? DATA_DIR : "/";
       listFolder(rootDir);
     }
   } else {
-    snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Failed to mount %s", fsType);  
+    snprintf(startupFailure, SF_LEN, STARTUP_FAIL "Failed to mount %s", fsTypes[thisFS]);  
     dataFilesChecked = true; // disable setupAssist as no file system
   }
   debugMemory("startStorage");
@@ -141,7 +160,7 @@ bool startStorage() {
 
 static void getOldestDir(char* oldestDir) {
   // get oldest folder by its date name
-  File root = fp.open("/");
+  File root = STORAGE.open("/");
   File file = root.openNextFile();
   if (file) strcpy(oldestDir, file.path()); // initialise oldestDir
   while (file) {
@@ -225,7 +244,7 @@ bool listDir(const char* fname, char* jsonBuff, size_t jsonBuffLen, const char* 
     // ignore leading '/' if not the only character
     bool returnDirs = strlen(fileName) > 1 ? (strchr(fileName+1, '/') == NULL ? false : true) : true; 
     // open relevant folder to list contents
-    File root = fp.open(fileName);
+    File root = STORAGE.open(fileName);
     if (strlen(fileName)) {
       if (!root) LOG_WRN("Failed to open directory %s", fileName);
       else if (!root.isDirectory()) LOG_WRN("Not a directory %s", fileName);
@@ -289,7 +308,7 @@ void deleteFolderOrFile(const char* deleteThis) {
   // delete supplied file or folder, unless it is a reserved folder
   char fileName[FILE_NAME_LEN];
   setFolderName(deleteThis, fileName);
-  File df = fp.open(fileName);
+  File df = STORAGE.open(fileName);
   if (!df) {
     LOG_WRN("Failed to open %s", fileName);
     return;
@@ -303,7 +322,7 @@ void deleteFolderOrFile(const char* deleteThis) {
   }  
   LOG_INF("Deleting : %s", fileName);
   // Empty named folder first
-  if (df.isDirectory() || ((!strcmp(fsType, "SPIFFS")) && strstr("/", fileName) != NULL)) {
+  if (df.isDirectory() || (thisFS == SPIFFSS && strstr("/", fileName) != NULL)) {
     LOG_INF("Folder %s contents", fileName);
     File file = df.openNextFile();
     while (file) {

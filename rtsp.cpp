@@ -23,9 +23,11 @@
 #include "appGlobals.h"
 
 #if INCLUDE_RTSP
-
+#if __has_include("../libraries/ESP32-RTSPServer/src/ESP32-RTSPServer.h") 
 #include <ESP32-RTSPServer.h> 
-
+#else
+#error "Need to install ESP32-RTSPServer library"
+#endif
 RTSPServer rtspServer;
 
 //Comment out to enable multiple clients for all transports (TCP, UDP, Multicast)
@@ -170,14 +172,14 @@ void prepRTSP() {
   if (transport != RTSPServer::NONE) {
     if (rtspServer.init()) { 
       LOG_INF("RTSP server started successfully with transport%s", transportStr);
-      LOG_INF("Connect to: rtsp://%s%s:%d%s", useAuth ? "<username>:<password>@" : "", WiFi.localIP().toString().c_str(), 
+      LOG_INF("Connect to: rtsp://%s%s:%d%s", useAuth ? "<username>:<password>@" : "", netLocalIP().toString().c_str(), 
         rtspServer.rtspPort, useAuth ? " (credentials not shown for security reasons)" : "");
 
       // start RTSP tasks, need bigger stack for video
 #ifdef ISCAM
-      if (rtspVideo) xTaskCreate(sendRTSPVideo, "sendRTSPVideo", 1024 * 5, NULL, SUSTAIN_PRI, &sustainHandle[1]); 
-      if (rtspAudio) xTaskCreate(sendRTSPAudio, "sendRTSPAudio", 1024 * 5, NULL, SUSTAIN_PRI, &sustainHandle[2]);
-      if (rtspSubtitles) xTaskCreate(startRTSPSubtitles, "startRTSPSubtitles", 1024 * 1, NULL, SUSTAIN_PRI, &sustainHandle[3]);
+      if (rtspVideo) xTaskCreateWithCaps(sendRTSPVideo, "sendRTSPVideo", 1024 * 5, NULL, SUSTAIN_PRI, &sustainHandle[1], HEAP_MEM); 
+      if (rtspAudio) xTaskCreateWithCaps(sendRTSPAudio, "sendRTSPAudio", 1024 * 5, NULL, SUSTAIN_PRI, &sustainHandle[2], HEAP_MEM);
+      if (rtspSubtitles) xTaskCreateWithCaps(startRTSPSubtitles, "startRTSPSubtitles", 1024 * 1, NULL, SUSTAIN_PRI, &sustainHandle[3], HEAP_MEM);
 #endif
 #ifdef ISVC
       xTaskCreate(sendRTSPAudio, "sendRTSPAudio", 1024 * 5, NULL, 5, NULL);
